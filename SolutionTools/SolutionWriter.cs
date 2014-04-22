@@ -36,17 +36,13 @@ namespace SolutionTools
             WriteHeader(writer);
 
             var seenElements = new HashSet<string>();
-            var nestedGuids = new List<string>();
+            var nestedFolderGuids = new List<string>();
+
             foreach (var group in grouped)
             {
                 var projectFolder = Guid.NewGuid();
-                writer.WriteLine(
-                    @"Project(""{{2150E333-8FDC-42A3-9474-1A3956D46DE8}}"") = ""{0}"", ""{1}"",""{{{2}}}""",
-                    @group.Key,
-                    @group.Key,
-                    projectFolder);
+                WriteProject(writer, projectFolder, @group.Key);
 
-                writer.WriteLine("EndProject");
                 var testProjects = false;
                 var testFolderGuid = Guid.NewGuid();
                 foreach (var file in @group)
@@ -56,35 +52,47 @@ namespace SolutionTools
                     if (fileName != null && seenElements.Add(relative))
                     {
                         var projectEntryGuid = Guid.NewGuid();
+                        // HACK: put a zero in place of the project guid. I dont know what this should be.
                         writer.WriteLine(@"Project(""0"") = ""{0}"", ""{1}"",""{{{2}}}""", fileName, relative, projectEntryGuid);
                         writer.WriteLine("EndProject");
 
                         if (isTestFolder(fileName))
                         {
-                            nestedGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, testFolderGuid));
+                            nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, testFolderGuid));
                             testProjects = true;
                         }
                         else
-                            nestedGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, projectFolder));
+                            nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, projectFolder));
                     }
                     // TODO: error?
                 }
                 if (testProjects)
                 {
-                    writer.WriteLine(@"Project(""{{2150E333-8FDC-42A3-9474-1A3956D46DE8}}"") = ""Tests"", ""Tests"",""{{{0}}}""", testFolderGuid);
-                    nestedGuids.Add(String.Format("{{{0}}} = {{{1}}}", testFolderGuid, projectFolder));
+                    WriteProject(writer, testFolderGuid, "Tests");
+                    nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", testFolderGuid, projectFolder));
                 }
             }
 
             writer.WriteLine("Global");
+            WriteNestedProjects(writer, nestedFolderGuids);
+            // HACK: omit the build configurations - visual studio does this
+            writer.WriteLine("EndGlobal");
+        }
+
+        private static void WriteNestedProjects(TextWriter writer, IEnumerable<string> nestedGuids)
+        {
             writer.WriteLine("\tGlobalSection(NestedProjects) = preSolution");
             foreach (var nestedGuid in nestedGuids)
             {
                 writer.WriteLine("\t\t{0}", nestedGuid);
             }
             writer.WriteLine("\tEndGlobalSection");
-            writer.WriteLine("EndGlobal");
         }
 
+        private static void WriteProject(TextWriter writer, Guid folderGuid, string folderName)
+        {
+            writer.WriteLine(@"Project(""{{2150E333-8FDC-42A3-9474-1A3956D46DE8}}"") = ""{1}"", ""{1}"",""{{{0}}}""", folderGuid, folderName);
+            writer.WriteLine("EndProject");
+        }
     }
 }
