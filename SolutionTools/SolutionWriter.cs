@@ -53,8 +53,7 @@ namespace SolutionTools
                     {
                         var projectEntryGuid = Guid.NewGuid();
                         // HACK: put a zero in place of the project guid. I dont know what this should be.
-                        writer.WriteLine(@"Project(""0"") = ""{0}"", ""{1}"",""{{{2}}}""", fileName, relative, projectEntryGuid);
-                        writer.WriteLine("EndProject");
+                        WriteProject(writer, fileName, relative, projectEntryGuid);
 
                         if (isTestFolder(fileName))
                         {
@@ -77,6 +76,12 @@ namespace SolutionTools
             WriteNestedProjects(writer, nestedFolderGuids);
             // HACK: omit the build configurations - visual studio does this
             writer.WriteLine("EndGlobal");
+        }
+
+        private static void WriteProject(TextWriter writer, string fileName, string relative, Guid projectEntryGuid)
+        {
+            writer.WriteLine(@"Project(""0"") = ""{0}"", ""{1}"",""{{{2}}}""", fileName, relative, projectEntryGuid);
+            writer.WriteLine("EndProject");
         }
 
         private static void WriteNestedProjects(TextWriter writer, IEnumerable<string> nestedGuids)
