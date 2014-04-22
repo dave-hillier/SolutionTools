@@ -6,8 +6,21 @@ namespace SolutionTools.Tests
     public class SolutionWriterTests
     {
         [Test]
-        public void FileSameDirectory()
+        public void EmptySln()
         {
+
+        }
+
+        [Test]
+        public void OneFolder()
+        {
+
+        }
+
+        [Test]
+        public void TestFolder()
+        {
+
         }
     }
 }

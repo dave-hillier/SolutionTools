@@ -7,25 +7,31 @@ namespace SolutionTools
 {
     internal class SolutionWriter
     {
-        public static void WriteSolution(IEnumerable<string> projects, string outputSlnPath, Func<string, string> folderNameSelector)
+        public static void WriteSolution(IEnumerable<string> projects, 
+            string outputSlnPath, 
+            Func<string, string> folderNameSelector, 
+            Func<string, bool> isTestFolder)
         {
-            string outputFolder = Path.GetDirectoryName(outputSlnPath) + Path.DirectorySeparatorChar;
-
+            string slnDirectory = Path.GetDirectoryName(outputSlnPath) + Path.DirectorySeparatorChar;
             var grouped = projects.GroupBy(folderNameSelector);
-
             using (var writer = new StreamWriter(outputSlnPath))
             {
-                WriteSolution(writer, grouped, outputFolder, fileName => fileName.Contains("Test"));
+                WriteSolution(slnDirectory, writer, grouped, isTestFolder);
             }
         }
 
-        private static void WriteHeader(StreamWriter writer)
+        private static void WriteHeader(TextWriter writer)
         {
+            //Microsoft Visual Studio Solution File, Format Version 12.00
+            //# Visual Studio 2012
+
             writer.WriteLine("Microsoft Visual Studio Solution File, Format Version 11.00"); // TODO: parameterize
             writer.WriteLine("# Visual Studio 2010");
         }
 
-        public static void WriteSolution(StreamWriter writer, IEnumerable<IGrouping<string, string>> grouped, string outputFolder, Func<string, bool> isTestFolder)
+        public static void WriteSolution(string solutionDirectory, TextWriter writer, 
+            IEnumerable<IGrouping<string, string>> grouped, 
+            Func<string, bool> isTestFolder)
         {
             WriteHeader(writer);
 
@@ -45,7 +51,7 @@ namespace SolutionTools
                 var testFolderGuid = Guid.NewGuid();
                 foreach (var file in @group)
                 {
-                    var relative = PathHelper.GetRelativePath(outputFolder, file);
+                    var relative = PathHelper.GetRelativePath(solutionDirectory, file);
                     string fileName = Path.GetFileNameWithoutExtension(file);
                     if (fileName != null && seenElements.Add(relative))
                     {
@@ -61,6 +67,7 @@ namespace SolutionTools
                         else
                             nestedGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, projectFolder));
                     }
+                    // TODO: error?
                 }
                 if (testProjects)
                 {
