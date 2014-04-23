@@ -85,9 +85,9 @@ namespace SolutionTools
                 foreach (var aref in refs)
                 {
                     textWriter.Write("\"{0}\";", aref);
-
                 }
             }
+
             textWriter.WriteLine();
             foreach (var project in projects)
             {
@@ -115,7 +115,8 @@ namespace SolutionTools
             if (Path.GetExtension(subOption) == ".sln")
             {
                 var directory = Path.GetDirectoryName(subOption);
-                return SolutionReader.GetProjects(subOption).Select(fn => Path.Combine(directory, fn));
+                return SolutionReader.GetProjects(subOption).Select(fn => directory != null ? Path.Combine(directory, fn) : null).
+                    Where(fn => fn != null);
             }
             if (IsDirectory(subOption))
             {
@@ -128,7 +129,7 @@ namespace SolutionTools
         {
             var projects = GetProjectsAndDependencies(input);
             // TODO: exclude regex?
-            SolutionWriter.WriteSolution(projects, sln, GetSlnFolder, IsTestProject);
+            SolutionWriter.WriteSolution(projects, sln, path => GetSlnFolder(sln, path), IsTestProject);
         }
 
         private static IEnumerable<string> GetProjectsAndDependenciesInDirectory(string directory)
@@ -146,7 +147,7 @@ namespace SolutionTools
         {
             var stdin = Console.In.ReadToEnd();
             var lines = stdin.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            SolutionWriter.WriteSolution(lines, outputSlnPath, GetSlnFolder, IsTestProject);
+            SolutionWriter.WriteSolution(lines, outputSlnPath, path => GetSlnFolder(outputSlnPath, path), IsTestProject);
         }
 
         private static bool IsTestProject(string fn)
@@ -154,9 +155,21 @@ namespace SolutionTools
             return fn.ToLowerInvariant().Contains("test");
         }
 
-        private static string GetSlnFolder(string project)
+        public static string GetSlnFolder(string sln, string project)
         {
-            return "MyFolder"; // TODO: two directories above the project?
+            // TODO: sort this mess out!
+            var slnDir = Path.GetDirectoryName(sln);
+            var projectDir = Path.GetDirectoryName(project);
+
+            if (Path.GetDirectoryName(Path.GetDirectoryName(project)) == slnDir)
+                return "";
+
+            while (slnDir != Path.GetDirectoryName(projectDir))
+            {
+                projectDir = Path.GetDirectoryName(projectDir);
+            }
+
+            return projectDir.Substring(slnDir.Length).Trim('\\');
         }
 
         private static bool IsDirectory(string input)
