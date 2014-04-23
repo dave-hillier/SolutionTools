@@ -34,9 +34,12 @@ namespace SolutionTools
                 }
                 // TODO: if directory find all proj and dependents
             }
-            else if ()
+            else if (verb == "sln" && args.Length > 1)
             {
-                
+                // TODO: folder strategy
+                var stdin = Console.In.ReadToEnd();
+                var lines = stdin.Split(new [] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                SolutionWriter.WriteSolution(lines, args[1], fn => "Projects", fn => fn.ToLowerInvariant().Contains("test"));
             }
         }
 
