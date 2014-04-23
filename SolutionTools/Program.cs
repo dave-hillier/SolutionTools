@@ -10,18 +10,29 @@ namespace SolutionTools
         private static void Main(string[] args)
         {
             var verb = args[0];
-            if (verb == "help" && args.Length > 1)
+            if (verb == "help")
             {
-                var subOption = args[1];
+                var subOption = args.Length > 1 ? args[1] : "";
+                if (subOption == "list")
+                    Console.WriteLine("list (project|solution|directory)");
+                if (subOption == "sln")
+                    Console.WriteLine("sln (input sln)");
+                else if (subOption == "graph")
+                    Console.WriteLine("graph (project|solution|directory)");
+                else
+                {
+                    Console.WriteLine("\tlist");
+                    Console.WriteLine("\tsln");
+                    Console.WriteLine("\tauto");
+                    Console.WriteLine("\tgraph");
+
+                }
             }
             else if (verb == "list" && args.Length > 1)
             {
                 var subOption = args[1];
                 var projects = GetProjectsAndDependencies(subOption);
-                foreach (var project in projects)
-                {
-                    Console.WriteLine("{0}",project);
-                }
+                PrintProjects(projects);
             }
             else if (verb == "sln" && args.Length > 1)
             {
@@ -34,26 +45,45 @@ namespace SolutionTools
                 var input = args[2];
                 GenerateSolution(input, sln);
             }
-            else if (verb == "dot" && args.Length > 1)
+            else if (verb == "graph" && args.Length > 1)
             {
                 var subOption = args[1];
                 var projects = GetProjectsAndDependencies(subOption);
+                var drawAssemblyReferences = args.Any(a => a.ToLowerInvariant() == "--assemblyreferences");
+                PrintDependencyGraph(projects, drawAssemblyReferences, Console.Out);
+            }
+        }
 
-                Console.WriteLine("digraph dependencies {");
-                foreach (var project in projects)
+        private static void PrintProjects(IEnumerable<string> projects)
+        {
+            foreach (var project in projects)
+            {
+                Console.WriteLine("{0}", project);
+            }
+        }
+
+        private static void PrintDependencyGraph(IEnumerable<string> projects, bool drawAssemblyReferences, TextWriter textWriter)
+        {
+            textWriter.WriteLine("digraph dependencies {");
+            foreach (var project in projects)
+            {
+                foreach (var reference in ProjectReader.GetProjectReferences(project))
                 {
-                    foreach (var reference in ProjectReader.GetProjectReferences(project))
+                    textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), ProjectReader.GetName(reference));
+                }
+                if (drawAssemblyReferences)
+                {
+                    foreach (var reference in ProjectReader.GetAssemblyReferences(project))
                     {
-                        Console.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), ProjectReader.GetName(reference));
+                        textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), reference);
                     }
                 }
-                Console.WriteLine("}");
             }
+            textWriter.WriteLine("}");
         }
 
         private static IEnumerable<string> GetProjectsAndDependencies(string subOption)
         {
-            // TODO: Ensure that as fully qualified path
             if (ProjectListBuilder.HasProjectExtension(subOption))
             {
                 return ProjectListBuilder.FindAllDependencies(subOption).Concat(new[] {subOption});

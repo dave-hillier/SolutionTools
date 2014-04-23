@@ -28,6 +28,20 @@ namespace SolutionTools
                 p => Path.GetFullPath(Path.Combine(directoryName, p)));
         }
 
+        public static IEnumerable<string> GetAssemblyReferences(string csproj)
+        {
+            var xmldoc = XDocument.Load(csproj);
+            var directoryName = Path.GetDirectoryName(csproj);
+
+            if (directoryName == null)
+                return new string[] { };
+
+            return from projectReferenceElement in xmldoc.Descendants(Xs + "Reference")
+                   let xAttribute = projectReferenceElement.Attribute("Include")
+                   where xAttribute != null
+                   select xAttribute.Value.Split(',').FirstOrDefault();
+        }
+
         public static IEnumerable<string> GetSilverlightApplicationReferences(XDocument xmldoc)
         {
             var appList = xmldoc.Descendants(Xs + "SilverlightApplicationList").SingleOrDefault();
