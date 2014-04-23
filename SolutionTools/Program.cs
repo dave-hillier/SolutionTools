@@ -157,16 +157,17 @@ namespace SolutionTools
 
         public static string GetSlnFolder(string sln, string project)
         {
-            // TODO: sort this mess out!
             var slnDir = Path.GetDirectoryName(sln);
             var projectDir = Path.GetDirectoryName(project);
-
-            if (Path.GetDirectoryName(Path.GetDirectoryName(project)) == slnDir)
+            var next = Path.GetDirectoryName(projectDir);
+            if (next == slnDir)
                 return "";
 
-            while (slnDir != Path.GetDirectoryName(projectDir))
+
+            while (slnDir != next)
             {
-                projectDir = Path.GetDirectoryName(projectDir);
+                projectDir = next; 
+                next = Path.GetDirectoryName(projectDir);
             }
 
             return projectDir.Substring(slnDir.Length).Trim('\\');
