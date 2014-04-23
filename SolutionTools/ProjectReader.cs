@@ -37,5 +37,11 @@ namespace SolutionTools
             }
             return new string[] { };
         }
+
+        public static string GetName(string project)
+        {
+            var xmldoc = XDocument.Load(project);
+            return xmldoc.Descendants(Xs + "AssemblyName").Select(e => e.Value).FirstOrDefault();
+        }
     }
 }
