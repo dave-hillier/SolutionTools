@@ -8,51 +8,38 @@ namespace SolutionTools
 {
     public class Program
     {
-        public class ListSubOptions
-        {
-            [Option('a', "all", HelpText = "Help!")]
-            public bool All { get; set; }
-
-            [HelpOption]
-            public string GetUsage()
-            {
-                return HelpText.AutoBuild(this, current => HelpText.DefaultParsingErrorsHandler(this, current));
-            }
-        }
-
-        public class Options 
-        {
-            [VerbOption("list", HelpText = "List all dependencies for a project.")]
-            public ListSubOptions ListVerb { get; set; }
-
-            [VerbOption("sln", HelpText = "Create a solution.")]
-            public ListSubOptions SlnVerb { get; set; }
-
-            // TODO: auto generate
-
-            [HelpVerbOption]
-            public string GetUsage(string verb)
-            {
-                return HelpText.AutoBuild(this, verb);
-            }
-        }
-
         static void Main(string[] args)
         {
-            var options = new Options();
-            string invokedVerb;
-            object invokedVerbInstance;
-
-            if (CommandLine.Parser.Default.ParseArguments(args, options,
-              (verb, subOptions) =>
-              {
-                  // if parsing succeeds the verb name and correct instance
-                  // will be passed to onVerbCommand delegate (string,object)
-                  invokedVerb = verb;
-                  invokedVerbInstance = subOptions;
-              }))
+            var verb = args[0];
+            if (verb == "help" && args.Length > 1)
             {
+                var subOption = args[1];
+
+            }
+            else if (verb == "list" && args.Length > 1)
+            {
+                var subOption = args[1];
+                if (ProjectListBuilder.HasProjectExtension(subOption))
+                {
+                    Console.WriteLine("{0}", subOption);
+                    var dependencies = ProjectListBuilder.FindAllDependencies(subOption);
+                    foreach (var dependency in dependencies)
+                    {
+                        Console.WriteLine("{0}", dependency);
+                    }
+                }
+                else if (Path.GetExtension(subOption) == "sln")
+                {
+                    // TODO: implement sln parser
+                }
+                // TODO: if directory find all proj and dependents
+            }
+            else if ()
+            {
+                
             }
         }
+
+
     }
 }

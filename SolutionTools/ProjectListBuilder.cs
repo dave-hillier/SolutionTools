@@ -9,6 +9,11 @@ namespace SolutionTools
     {
         private static readonly string[] Ext = new[] { "csproj", "fsproj", "vbproj" };
 
+        public static bool HasProjectExtension(string fileName)
+        {
+            return (from ext in Ext select Path.GetExtension(fileName) == ext).Any();
+        }
+
         public static IEnumerable<string> FindProjects(string root)
         {
             return from ext in Ext
