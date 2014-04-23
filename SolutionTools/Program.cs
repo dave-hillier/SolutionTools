@@ -32,8 +32,17 @@ namespace SolutionTools
                 else if (Path.GetExtension(subOption) == "sln")
                 {
                     // TODO: implement sln parser
+                    // TODO: missing refs?
                 }
-                // TODO: if directory find all proj and dependents
+                else if (IsDirectory(subOption))
+                {
+                    var projects = ProjectListBuilder.FindProjects(subOption);
+                    // TODO: dependencies?
+                    foreach (var dependency in projects)
+                    {
+                        Console.WriteLine("{0}", dependency);
+                    }
+                }
             }
             else if (verb == "sln" && args.Length > 1)
             {
@@ -52,6 +61,7 @@ namespace SolutionTools
                 if (IsDirectory(input))
                 {
                     projects = ProjectListBuilder.FindProjects(Path.GetDirectoryName(sln));
+                    // TODO: get dependencies for each
                 }
                 else if (ProjectListBuilder.HasProjectExtension(input))
                 {
@@ -59,7 +69,6 @@ namespace SolutionTools
                 }
                 SolutionWriter.WriteSolution(projects, sln, fn => "fn", fn => fn.ToLowerInvariant().Contains("test"));
             }
-
         }
 
         private static bool IsDirectory(string input)
