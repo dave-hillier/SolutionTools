@@ -16,5 +16,14 @@ namespace SolutionTools.Tests
             Assert.IsTrue(ProjectListBuilder.HasProjectExtension(fsproj));
             Assert.IsTrue(ProjectListBuilder.HasProjectExtension(vbproj));
         }
+
+
+        [Test]
+        public void NotExt()
+        {
+            const string sln = @"c:\project\project.sln";
+
+            Assert.IsFalse(ProjectListBuilder.HasProjectExtension(sln));
+        }
     }
 }

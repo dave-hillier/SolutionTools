@@ -11,7 +11,8 @@ namespace SolutionTools
 
         public static bool HasProjectExtension(string fileName)
         {
-            return (from ext in Ext select Path.GetExtension(fileName) == ext).Any();
+            var matches = from ext in Ext select Path.GetExtension(fileName) == ext;
+            return matches.Any(b=>b);
         }
 
         public static IEnumerable<string> FindProjects(string root)

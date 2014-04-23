@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CommandLine;
-using CommandLine.Text;
+using System.Text.RegularExpressions;
 
 namespace SolutionTools
 {
@@ -22,53 +21,114 @@ namespace SolutionTools
                 var subOption = args[1];
                 if (ProjectListBuilder.HasProjectExtension(subOption))
                 {
-                    Console.WriteLine("{0}", subOption);
-                    var dependencies = ProjectListBuilder.FindAllDependencies(subOption);
-                    foreach (var dependency in dependencies)
-                    {
-                        Console.WriteLine("{0}", dependency);
-                    }
+                    PrintAllDependencies(subOption);
                 }
-                else if (Path.GetExtension(subOption) == "sln")
+                else if (Path.GetExtension(subOption) == ".sln")
                 {
-                    // TODO: implement sln parser
-                    // TODO: missing refs?
+                    using (var f = File.OpenText(subOption))
+                    {
+                        var lines = new List<string>();
+                        while(!f.EndOfStream)
+                            lines.Add(f.ReadLine());
+                        var re = new Regex(@"Project\("".+?""\) = ""(.+?)"", ""(.+?)"", "".+?""");
+                        var projects = from line in lines
+                                       let matches = re.Match(line)
+                                       where matches.Success && matches.Groups.Count == 3 && matches.Groups[1].Value != matches.Groups[2].Value
+                                       select matches.Groups[2].Value;
+                        foreach (var project in projects)
+                        {
+                            Console.WriteLine("{0}", project);
+                        }
+                    }
                 }
                 else if (IsDirectory(subOption))
                 {
-                    var projects = ProjectListBuilder.FindProjects(subOption);
-                    // TODO: dependencies?
-                    foreach (var dependency in projects)
-                    {
-                        Console.WriteLine("{0}", dependency);
-                    }
+                    PrintAllDependenciesInDirectory(subOption);
                 }
             }
             else if (verb == "sln" && args.Length > 1)
             {
-                // TODO: folder strategy
-                var stdin = Console.In.ReadToEnd();
-                var lines = stdin.Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
-                SolutionWriter.WriteSolution(lines, args[1], fn => "Projects",
-                                             fn => fn.ToLowerInvariant().Contains("test"));
+                var outputSlnPath = args[1];
+                WriteSlnFromStdIn(outputSlnPath);
             }
             else if (verb == "auto" && args.Length > 2)
             {
                 var sln = args[1];
                 var input = args[2];
-
-                IEnumerable<string> projects = new string[] {};
-                if (IsDirectory(input))
-                {
-                    projects = ProjectListBuilder.FindProjects(Path.GetDirectoryName(sln));
-                    // TODO: get dependencies for each
-                }
-                else if (ProjectListBuilder.HasProjectExtension(input))
-                {
-                    projects = ProjectListBuilder.FindAllDependencies(input).Concat(new[] {input});
-                }
-                SolutionWriter.WriteSolution(projects, sln, fn => "fn", fn => fn.ToLowerInvariant().Contains("test"));
+                GenerateSolution(input, sln);
             }
+            else if (verb == "dot" && args.Length > 1)
+            {
+                
+            }
+        }
+
+        private static void GenerateSolution(string input, string sln)
+        {
+            var projects = GetProjects(input, Path.GetDirectoryName(sln));
+            // TODO: excluse regex?
+            SolutionWriter.WriteSolution(projects, sln, GetSlnFolder, IsTestProject);
+        }
+
+        private static IEnumerable<string> GetProjects(string inputPath, string searchDirectory)
+        {
+            IEnumerable<string> projects = new string[] {};
+            if (IsDirectory(inputPath))
+            {
+                projects = ProjectListBuilder.FindProjects(searchDirectory);
+            }
+            else if (ProjectListBuilder.HasProjectExtension(inputPath))
+            {
+                projects = ProjectListBuilder.FindAllDependencies(inputPath).Concat(new[] {inputPath});
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+            return projects;
+        }
+
+        private static void PrintAllDependenciesInDirectory(string subOption)
+        {
+            var projects = ProjectListBuilder.FindProjects(subOption).ToArray();
+            var deps = from f in projects
+                       from dep in ProjectListBuilder.FindAllDependencies(f)
+                       select dep;
+
+            deps = deps.Concat(projects);
+            
+            foreach (var dependency in deps)
+            {
+                Console.WriteLine("{0}", dependency);
+            }
+        }
+
+        private static void PrintAllDependencies(string project)
+        {
+            Console.WriteLine("{0}", project); // Should this be optional?
+            var dependencies = ProjectListBuilder.FindAllDependencies(project);
+            foreach (var dependency in dependencies)
+            {
+                Console.WriteLine("{0}", dependency);
+            }
+        }
+
+        private static void WriteSlnFromStdIn(string outputSlnPath)
+        {
+            // TODO: folder strategy
+            var stdin = Console.In.ReadToEnd();
+            var lines = stdin.Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+            SolutionWriter.WriteSolution(lines, outputSlnPath, GetSlnFolder, IsTestProject);
+        }
+
+        private static bool IsTestProject(string fn)
+        {
+            return fn.ToLowerInvariant().Contains("test");
+        }
+
+        private static string GetSlnFolder(string fn)
+        {
+            return "Myfolder";
         }
 
         private static bool IsDirectory(string input)
