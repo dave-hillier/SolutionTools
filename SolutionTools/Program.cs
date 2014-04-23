@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommandLine;
@@ -8,7 +9,7 @@ namespace SolutionTools
 {
     public class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var verb = args[0];
             if (verb == "help" && args.Length > 1)
@@ -38,11 +39,32 @@ namespace SolutionTools
             {
                 // TODO: folder strategy
                 var stdin = Console.In.ReadToEnd();
-                var lines = stdin.Split(new [] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                SolutionWriter.WriteSolution(lines, args[1], fn => "Projects", fn => fn.ToLowerInvariant().Contains("test"));
+                var lines = stdin.Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+                SolutionWriter.WriteSolution(lines, args[1], fn => "Projects",
+                                             fn => fn.ToLowerInvariant().Contains("test"));
             }
+            else if (verb == "auto" && args.Length > 2)
+            {
+                var sln = args[1];
+                var input = args[2];
+
+                IEnumerable<string> projects = new string[] {};
+                if (IsDirectory(input))
+                {
+                    projects = ProjectListBuilder.FindProjects(Path.GetDirectoryName(sln));
+                }
+                else if (ProjectListBuilder.HasProjectExtension(input))
+                {
+                    projects = ProjectListBuilder.FindAllDependencies(input).Concat(new[] {input});
+                }
+                SolutionWriter.WriteSolution(projects, sln, fn => "fn", fn => fn.ToLowerInvariant().Contains("test"));
+            }
+
         }
 
-
+        private static bool IsDirectory(string input)
+        {
+            return (File.GetAttributes(input) & FileAttributes.Directory) != 0;
+        }
     }
 }
