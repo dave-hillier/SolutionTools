@@ -7,18 +7,17 @@ namespace SolutionTools
 {
     internal class ProjectListBuilder
     {
-        private static readonly string[] Ext = new[] { "csproj", "fsproj", "vbproj" };
+        private static readonly string[] Ext = new[] { ".csproj", ".fsproj", ".vbproj" };
 
         public static bool HasProjectExtension(string fileName)
         {
-            var matches = from ext in Ext select Path.GetExtension(fileName) == ext;
-            return matches.Any(b=>b);
+            return (from ext in Ext select Path.GetExtension(fileName) == ext).Any(b => b);
         }
 
         public static IEnumerable<string> FindProjects(string root)
         {
             return from ext in Ext
-                   from projPath in Directory.GetFiles(root, "*." + ext, SearchOption.AllDirectories)
+                   from projPath in Directory.GetFiles(root, "*" + ext, SearchOption.AllDirectories)
                    select projPath;
         }
 

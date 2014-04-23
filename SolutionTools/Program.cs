@@ -25,21 +25,7 @@ namespace SolutionTools
                 }
                 else if (Path.GetExtension(subOption) == ".sln")
                 {
-                    using (var f = File.OpenText(subOption))
-                    {
-                        var lines = new List<string>();
-                        while(!f.EndOfStream)
-                            lines.Add(f.ReadLine());
-                        var re = new Regex(@"Project\("".+?""\) = ""(.+?)"", ""(.+?)"", "".+?""");
-                        var projects = from line in lines
-                                       let matches = re.Match(line)
-                                       where matches.Success && matches.Groups.Count == 3 && matches.Groups[1].Value != matches.Groups[2].Value
-                                       select matches.Groups[2].Value;
-                        foreach (var project in projects)
-                        {
-                            Console.WriteLine("{0}", project);
-                        }
-                    }
+                    PrintSlnProjects(subOption);
                 }
                 else if (IsDirectory(subOption))
                 {
@@ -63,29 +49,45 @@ namespace SolutionTools
             }
         }
 
+        private static void PrintSlnProjects(string subOption)
+        {
+            using (var f = File.OpenText(subOption))
+            {
+                var lines = new List<string>();
+                while (!f.EndOfStream)
+                    lines.Add(f.ReadLine());
+                var re = new Regex(@"Project\("".+?""\) = ""(.+?)"", ""(.+?)"", "".+?""");
+                var projects = from line in lines
+                               let matches = re.Match(line)
+                               where
+                                   matches.Success && matches.Groups.Count == 3 &&
+                                   matches.Groups[1].Value != matches.Groups[2].Value
+                               select matches.Groups[2].Value;
+                foreach (var project in projects)
+                {
+                    Console.WriteLine("{0}", project);
+                }
+            }
+        }
+
         private static void GenerateSolution(string input, string sln)
         {
             var projects = GetProjects(input, Path.GetDirectoryName(sln));
-            // TODO: excluse regex?
+            // TODO: exclude regex?
             SolutionWriter.WriteSolution(projects, sln, GetSlnFolder, IsTestProject);
         }
 
         private static IEnumerable<string> GetProjects(string inputPath, string searchDirectory)
         {
-            IEnumerable<string> projects = new string[] {};
             if (IsDirectory(inputPath))
             {
-                projects = ProjectListBuilder.FindProjects(searchDirectory);
+                return ProjectListBuilder.FindProjects(searchDirectory);
             }
-            else if (ProjectListBuilder.HasProjectExtension(inputPath))
+            if (ProjectListBuilder.HasProjectExtension(inputPath))
             {
-                projects = ProjectListBuilder.FindAllDependencies(inputPath).Concat(new[] {inputPath});
+                return ProjectListBuilder.FindAllDependencies(inputPath).Concat(new[] {inputPath});
             }
-            else
-            {
-                throw new NotSupportedException();
-            }
-            return projects;
+            throw new NotSupportedException();
         }
 
         private static void PrintAllDependenciesInDirectory(string subOption)
@@ -115,7 +117,6 @@ namespace SolutionTools
 
         private static void WriteSlnFromStdIn(string outputSlnPath)
         {
-            // TODO: folder strategy
             var stdin = Console.In.ReadToEnd();
             var lines = stdin.Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
             SolutionWriter.WriteSolution(lines, outputSlnPath, GetSlnFolder, IsTestProject);
@@ -126,9 +127,9 @@ namespace SolutionTools
             return fn.ToLowerInvariant().Contains("test");
         }
 
-        private static string GetSlnFolder(string fn)
+        private static string GetSlnFolder(string project)
         {
-            return "Myfolder";
+            return "MyFolder"; // TODO: two directories above the project?
         }
 
         private static bool IsDirectory(string input)
