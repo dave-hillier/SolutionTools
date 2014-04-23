@@ -36,7 +36,7 @@ namespace SolutionTools
                        from another in GetAllDependenciesRecursively(reference, getReferencesMemoized)
                        select another;
 
-            return projectReferences.Concat(more);
+            return projectReferences.Concat(more).OrderByDescending(a => a).Distinct();
         }
     }
 }

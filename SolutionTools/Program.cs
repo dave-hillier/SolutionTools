@@ -64,7 +64,31 @@ namespace SolutionTools
 
         private static void PrintDependencyGraph(IEnumerable<string> projects, bool drawAssemblyReferences, TextWriter textWriter)
         {
+            //http://stamm-wilbrandt.de/GraphvizFiddle/
+            projects = projects.ToArray();
+
             textWriter.WriteLine("digraph dependencies {");
+            textWriter.Write("\tnode[shape = box]; ");
+            foreach (var project in projects)
+            {
+                textWriter.Write("\"{0}\";", ProjectReader.GetName(project));
+                
+            }
+            textWriter.WriteLine();
+
+            if (drawAssemblyReferences)
+            {
+                var refs = from project in projects
+                           from aref in ProjectReader.GetAssemblyReferences(project)
+                           select aref;
+                textWriter.Write("\tnode[shape = ellipse]; ");
+                foreach (var aref in refs)
+                {
+                    textWriter.Write("\"{0}\";", aref);
+
+                }
+            }
+            textWriter.WriteLine();
             foreach (var project in projects)
             {
                 foreach (var reference in ProjectReader.GetProjectReferences(project))
@@ -86,7 +110,7 @@ namespace SolutionTools
         {
             if (ProjectListBuilder.HasProjectExtension(subOption))
             {
-                return ProjectListBuilder.FindAllDependencies(subOption).Concat(new[] {subOption});
+                return ProjectListBuilder.FindAllDependencies(subOption).Concat(new[] { subOption });
             }
             if (Path.GetExtension(subOption) == ".sln")
             {
@@ -102,24 +126,10 @@ namespace SolutionTools
 
         private static void GenerateSolution(string input, string sln)
         {
-            var projects = GetProjects(input, Path.GetDirectoryName(sln));
+            var projects = GetProjectsAndDependencies(input);
             // TODO: exclude regex?
             SolutionWriter.WriteSolution(projects, sln, GetSlnFolder, IsTestProject);
         }
-
-        private static IEnumerable<string> GetProjects(string inputPath, string searchDirectory)
-        {
-            if (IsDirectory(inputPath))
-            {
-                return ProjectListBuilder.FindProjects(searchDirectory);
-            }
-            if (ProjectListBuilder.HasProjectExtension(inputPath))
-            {
-                return ProjectListBuilder.FindAllDependencies(inputPath).Concat(new[] {inputPath});
-            }
-            throw new NotSupportedException();
-        }
-
 
         private static IEnumerable<string> GetProjectsAndDependenciesInDirectory(string directory)
         {
@@ -129,13 +139,13 @@ namespace SolutionTools
                        select dep;
 
             deps = deps.Concat(projects);
-            return deps;
+            return deps.OrderByDescending(a => a).Distinct();
         }
 
         private static void WriteSlnFromStdIn(string outputSlnPath)
         {
             var stdin = Console.In.ReadToEnd();
-            var lines = stdin.Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+            var lines = stdin.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             SolutionWriter.WriteSolution(lines, outputSlnPath, GetSlnFolder, IsTestProject);
         }
 
