@@ -46,6 +46,7 @@
     <Compile Include="DirectoryReader.cs" />
     <Compile Include="FolderSelector.cs" />
     <Compile Include="GraphWriter.cs" />
+    <Compile Include="IFolderSelector.cs" />
     <Compile Include="IProjectListWriter.cs" />
     <Compile Include="IProjectReader.cs" />
     <Compile Include="MemoizeExt.cs" />

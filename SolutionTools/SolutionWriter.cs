@@ -6,13 +6,13 @@ using System.Linq;
 namespace SolutionTools
 {
 
-    internal class SlnWriter : IProjectListWriter
+    internal class SolutionWriter : IProjectListWriter
     {
         private readonly string _outputSlnPath;
         private readonly Func<string, string> _folderNameSelector;
         private readonly Func<string, bool> _isTestFolder;
 
-        public SlnWriter(string outputSlnPath,
+        public SolutionWriter(string outputSlnPath,
             Func<string, string> folderNameSelector,
             Func<string, bool> isTestFolder)
         {

@@ -3,9 +3,15 @@ using System.Linq;
 
 namespace SolutionTools
 {
-    public class FolderSelector
+    class FolderSelector : IFolderSelector
     {
-        // TODO: to strategies
+        private readonly string _sln;
+
+        public FolderSelector(string sln)
+        {
+            _sln = sln;
+        }
+
         public static string GetSlnFolderByNamespace(string sln, string project)
         {
             var fn = Path.GetFileName(project);
@@ -15,7 +21,6 @@ namespace SolutionTools
 
         public static string GetSlnFolder(string sln, string project)
         {
-
             var slnDir = Path.GetDirectoryName(sln);
             var projectDir = Path.GetDirectoryName(project);
             var next = Path.GetDirectoryName(projectDir);
@@ -30,6 +35,11 @@ namespace SolutionTools
             }
 
             return projectDir.Substring(slnDir.Length).Trim('\\');
+        }
+
+        public string GetFolder(string project)
+        {
+            return GetSlnFolder(_sln, project);
         }
     }
 }

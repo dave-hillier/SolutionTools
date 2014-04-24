@@ -53,7 +53,10 @@ namespace SolutionTools
             if (args[0] == "list")
                 return new BasicWriter();
             if (args[0] == "auto")
-                return new SlnWriter(args[2], path => FolderSelector.GetSlnFolder(args[2], path), IsTestProject);
+            {
+                var folderSelector = new FolderSelector(args[2]);
+                return new SolutionWriter(args[2], folderSelector.GetFolder, IsTestProject);
+            }
             throw new NotSupportedException();
         }
 
