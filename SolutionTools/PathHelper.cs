@@ -12,9 +12,9 @@ namespace SolutionTools
             return Uri.UnescapeDataString(stringToUnescape);
         }
 
-        public static bool IsDirectory(string input)
+        public static bool IsDirectory(string path)
         {
-            return (File.GetAttributes(input) & FileAttributes.Directory) != 0;
+            return (File.GetAttributes(path) & FileAttributes.Directory) != 0;
         }
     }
 }

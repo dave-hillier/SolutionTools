@@ -14,7 +14,7 @@ namespace SolutionTools
 
         public IEnumerable<string> GetProjects()
         {
-            return ProjectListBuilder.FindAllDependencies(_projectPath).Concat(new[] {_projectPath});
+            return ProjectListBuilder.GetAllDependenciesRecursively(_projectPath).Concat(new[] {_projectPath});
 
         }
     }

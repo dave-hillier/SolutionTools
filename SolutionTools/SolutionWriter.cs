@@ -8,24 +8,66 @@ namespace SolutionTools
 
     internal class SolutionWriter : IProjectListWriter
     {
+        private readonly TextWriter _textWriter;
         private readonly string _outputSlnPath;
         private readonly Func<string, string> _folderNameSelector;
         private readonly Func<string, bool> _isTestFolder;
 
-        public SolutionWriter(string outputSlnPath,
-            Func<string, string> folderNameSelector,
-            Func<string, bool> isTestFolder)
+        public SolutionWriter(TextWriter textWriter, string outputSlnPath, 
+            Func<string, string> folderNameSelector, Func<string, bool> isTestFolder)
         {
+            _textWriter = textWriter;
             _outputSlnPath = outputSlnPath;
             _folderNameSelector = folderNameSelector;
             _isTestFolder = isTestFolder;
         }
 
-        public void Write(IEnumerable<string> projects, TextWriter textWriter)
+        public void Write(IEnumerable<string> projects)
         {
             string slnDirectory = Path.GetDirectoryName(_outputSlnPath) + Path.DirectorySeparatorChar;
             var grouped = projects.GroupBy(_folderNameSelector);
-            WriteSolution(slnDirectory, textWriter, grouped, _isTestFolder);
+
+            WriteHeader(_textWriter);
+
+            var seenElements = new HashSet<string>();
+            var nestedFolderGuids = new List<string>();
+
+            foreach (var @group in grouped)
+            {
+                var projectFolder = Guid.NewGuid();
+
+                if (@group.Key != "")
+                    WriteProject(_textWriter, projectFolder, @group.Key);
+
+                var testProjects = false;
+                var testFolderGuid = Guid.NewGuid();
+                foreach (var file in @group)
+                {
+                    var relative = PathHelper.GetRelativePath(slnDirectory, file);
+                    string fileName = Path.GetFileNameWithoutExtension(file);
+                    if (fileName != null && seenElements.Add(relative))
+                    {
+                        var projectEntryGuid = Guid.NewGuid();
+                        WriteProject(_textWriter, fileName, relative, projectEntryGuid);
+
+                        if (!string.IsNullOrEmpty(@group.Key))
+                        {
+                            testProjects = AddToNestedFolders(_isTestFolder, fileName, nestedFolderGuids, projectEntryGuid, testFolderGuid, testProjects, projectFolder);
+                        }
+                    }
+                    // TODO: error?
+                }
+                if (testProjects)
+                {
+                    WriteProject(_textWriter, testFolderGuid, "Tests");
+                    nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", testFolderGuid, projectFolder));
+                }
+            }
+
+            _textWriter.WriteLine("Global");
+            WriteNestedProjects(_textWriter, nestedFolderGuids);
+            // HACK: omit the build configurations - visual studio does this
+            _textWriter.WriteLine("EndGlobal");
         }
 
         private static void WriteHeader(TextWriter writer)
@@ -35,53 +77,6 @@ namespace SolutionTools
 
             writer.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00"); // TODO: parameterize
             writer.WriteLine("# Visual Studio 2012");
-        }
-
-        public static void WriteSolution(string solutionDirectory, TextWriter writer,
-            IEnumerable<IGrouping<string, string>> grouped,
-            Func<string, bool> isTestFolder)
-        {
-            WriteHeader(writer);
-
-            var seenElements = new HashSet<string>();
-            var nestedFolderGuids = new List<string>();
-
-            foreach (var group in grouped)
-            {
-                var projectFolder = Guid.NewGuid();
-
-                if (group.Key != "")
-                    WriteProject(writer, projectFolder, @group.Key);
-
-                var testProjects = false;
-                var testFolderGuid = Guid.NewGuid();
-                foreach (var file in @group)
-                {
-                    var relative = PathHelper.GetRelativePath(solutionDirectory, file);
-                    string fileName = Path.GetFileNameWithoutExtension(file);
-                    if (fileName != null && seenElements.Add(relative))
-                    {
-                        var projectEntryGuid = Guid.NewGuid();
-                        WriteProject(writer, fileName, relative, projectEntryGuid);
-
-                        if (!string.IsNullOrEmpty(@group.Key))
-                        {
-                            testProjects = AddToNestedFolders(isTestFolder, fileName, nestedFolderGuids, projectEntryGuid, testFolderGuid, testProjects, projectFolder);
-                        }
-                    }
-                    // TODO: error?
-                }
-                if (testProjects)
-                {
-                    WriteProject(writer, testFolderGuid, "Tests");
-                    nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", testFolderGuid, projectFolder));
-                }
-            }
-
-            writer.WriteLine("Global");
-            WriteNestedProjects(writer, nestedFolderGuids);
-            // HACK: omit the build configurations - visual studio does this
-            writer.WriteLine("EndGlobal");
         }
 
         private static bool AddToNestedFolders(Func<string, bool> isTestFolder, string fileName, List<string> nestedFolderGuids, Guid projectEntryGuid,

@@ -17,16 +17,29 @@ namespace SolutionTools
 
             var projectReader = CreateProjectReader(args);
             var filter = CreateFilter(args);
-            var writer = CreateWriter(args);
+
+            var textWriter = GetOutputTextWriter(args);
+            var writer = CreateProjectWriter(args, textWriter);
 
             var projects = projectReader.GetProjects();
             projects = filter.ApplyFilters(projects);
-            writer.Write(projects, Console.Out);
+            writer.Write(projects);
+
+
+        }
+
+        private static TextWriter GetOutputTextWriter(string[] args)
+        {
+            return IsOptionSet(args, "--out") ? new StreamWriter(File.Open(GetOption(args, "--out"), FileMode.OpenOrCreate)) : Console.Out;
         }
 
         private static IProjectReader CreateProjectReader(string[] args)
         {
-            var subOption = args[0];
+            if (IsOptionSet(args, "--consolein"))
+            {
+                return new ProjectStreamReader(Console.In);
+            }
+            var subOption = args[1];
             if (ProjectListBuilder.HasProjectExtension(subOption))
             {
                 return new ProjectDependenciesReader(subOption);
@@ -39,25 +52,27 @@ namespace SolutionTools
             {
                 return new DirectoryReader(subOption);
             }
-            if (args.Any(a => a.ToLowerInvariant().Contains("--stdin")))
-            {
-                return new ProjectStreamReader(Console.In);
-            }
             throw new NotSupportedException();
         }
 
-        private static IProjectListWriter CreateWriter(string[] args)
+        private static bool IsOptionSet(IEnumerable<string> args, string option)
         {
-            if (args[0] == "graph")
-                return new GraphWriter(args.Any(a => a.ToLowerInvariant() == "--assemblyreferences"));
-            if (args[0] == "list")
-                return new BasicWriter();
-            if (args[0] == "auto")
+            return args.Any(a => a.ToLowerInvariant().Contains(option));
+        }
+
+        private static IProjectListWriter CreateProjectWriter(string[] args, TextWriter writer)
+        {
+            var verb = args[0];
+            if (verb == "graph")
+                return new GraphWriter(writer, IsOptionSet(args, "--assemblyreferences"));
+            if (verb == "list")
+                return new BasicWriter(writer);
+            if (verb == "auto")
             {
                 var folderSelector = new FolderSelector(args[2]);
-                return new SolutionWriter(args[2], folderSelector.GetFolder, IsTestProject);
+                return new SolutionWriter(writer, args[2], folderSelector.GetFolder, IsTestProject);
             }
-            throw new NotSupportedException();
+            throw new NotSupportedException(string.Format("Unknown option: {0}", verb));
         }
 
         private static ProjectFilter CreateFilter(string[] args)

@@ -5,6 +5,6 @@ namespace SolutionTools
 {
     public interface IProjectListWriter
     {
-        void Write(IEnumerable<string> projects, TextWriter textWriter);
+        void Write(IEnumerable<string> projects);
     }
 }

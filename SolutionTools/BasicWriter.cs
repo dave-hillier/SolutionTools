@@ -5,11 +5,18 @@ namespace SolutionTools
 {
     internal class BasicWriter : IProjectListWriter
     {
-        public void Write(IEnumerable<string> projects, TextWriter textWriter)
+        private readonly TextWriter _textWriter;
+
+        public BasicWriter(TextWriter textWriter)
+        {
+            _textWriter = textWriter;
+        }
+
+        public void Write(IEnumerable<string> projects)
         {
             foreach (var project in projects)
             {
-                textWriter.WriteLine("{0}", project);
+                _textWriter.WriteLine("{0}", project);
             }
         }
     }

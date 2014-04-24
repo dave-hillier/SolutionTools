@@ -21,7 +21,7 @@ namespace SolutionTools
                    select projPath;
         }
 
-        public static IEnumerable<string> FindAllDependencies(string proj)
+        public static IEnumerable<string> GetAllDependenciesRecursively(string proj)
         {
             Func<string, string[]> tmp = a => ProjectParser.GetProjectReferences(a).ToArray();
             var getReferencesMemoized = tmp.Memoize();

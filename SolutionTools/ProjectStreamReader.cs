@@ -20,7 +20,7 @@ namespace SolutionTools
             {
                 if (!ProjectListBuilder.HasProjectExtension(line))
                     throw new NotSupportedException("File type unknown");
-                // TODO: do we care if this file exists...
+                // TODO: do we care if this file exists...?
                 yield return line;
             }
         }

@@ -6,36 +6,38 @@ namespace SolutionTools
 {
     public class GraphWriter : IProjectListWriter
     {
+        private readonly TextWriter _textWriter;
         private readonly bool _drawAssemblyReferences;
 
-        public GraphWriter(bool drawAssemblyReferences)
+        public GraphWriter(TextWriter textWriter, bool drawAssemblyReferences)
         {
+            _textWriter = textWriter;
             _drawAssemblyReferences = drawAssemblyReferences;
         }
 
-        public void Write(IEnumerable<string> projects, TextWriter textWriter)
+        public void Write(IEnumerable<string> projects)
         {
             //http://stamm-wilbrandt.de/GraphvizFiddle/
             projects = projects.ToArray();
 
-            textWriter.WriteLine("digraph dependencies {");
-            WriteProjectNodes(projects, textWriter);
+            _textWriter.WriteLine("digraph dependencies {");
+            WriteProjectNodes(projects, _textWriter);
 
             if (_drawAssemblyReferences)
             {
-                WriteAssemblyNodes(projects, textWriter);
+                WriteAssemblyNodes(projects, _textWriter);
             }
 
-            textWriter.WriteLine();
+            _textWriter.WriteLine();
             foreach (var project in projects)
             {
-                WriteProjectReferences(textWriter, project);
+                WriteProjectReferences(_textWriter, project);
                 if (_drawAssemblyReferences)
                 {
-                    WriteAssemblyReferences(textWriter, project);
+                    WriteAssemblyReferences(_textWriter, project);
                 }
             }
-            textWriter.WriteLine("}");
+            _textWriter.WriteLine("}");
         }
 
         private static void WriteProjectNodes(IEnumerable<string> projects, TextWriter textWriter)
