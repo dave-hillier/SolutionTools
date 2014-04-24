@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace SolutionTools
@@ -12,20 +13,67 @@ namespace SolutionTools
 
         private static void Main(string[] args)
         {
-            if (args.Length < 1)
+            if (args.Length < 1 || args[0].ToLowerInvariant() == "help")
+            {
+                DisplayHelp();
                 return;
+            }
 
-            var projectReader = CreateProjectReader(args);
-            var filter = CreateFilter(args);
+            if (args.Length == 2 && args[0].ToLowerInvariant() == "help")
+            {
+                DisplayHelp(args[1]);                
+                return;
+            }
 
-            var textWriter = GetOutputTextWriter(args);
-            var writer = CreateProjectWriter(args, textWriter);
+            try
+            {
+                var projectReader = CreateProjectReader(args);
+                var filter = CreateFilter(args);
 
-            var projects = projectReader.GetProjects();
-            projects = filter.ApplyFilters(projects);
-            writer.Write(projects);
+                var textWriter = GetOutputTextWriter(args);
+                var writer = CreateProjectWriter(args, textWriter);
 
+                var projects = projectReader.GetProjects();
+                projects = filter.ApplyFilters(projects);
+                writer.Write(projects);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Error: {0}", ex.Message);
+                DisplayHelp();
+                throw;
+            }
+        }
 
+        private static void DisplayHelp(string command)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void DisplayHelp()
+        {
+            Console.WriteLine(@"{0} - {1} - {2}\n",
+                              Assembly.GetExecutingAssembly().GetName().Name,
+                              Assembly.GetExecutingAssembly().GetName().Version,
+                              "https://github.com/dave-hillier/SolutionTools");
+
+            Console.WriteLine(@"Usage:
+    {0} <command> <project|solution|directory> [command options|options]
+
+Commands:
+    auto    Create a solution based on the inputs
+    graph   Generate a graphviz compatible chart
+    list    Prints the result to the specified output
+    help    Display this help or help for a command
+
+Options:
+    --out <file>      File to save the result to 
+    --consolein       Read the input from the console
+    --include <regex> Only include projects matching the expression
+    --exclude <regex> Exclude projects matching the expression
+
+",
+             Assembly.GetExecutingAssembly().GetName().Name);
         }
 
         private static TextWriter GetOutputTextWriter(string[] args)

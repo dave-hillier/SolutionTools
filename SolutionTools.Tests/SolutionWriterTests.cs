@@ -12,8 +12,8 @@ namespace SolutionTools.Tests
         public void EmptySln() 
         {
             var stringWriter = new StringWriter();
-            var sw = new SlnWriter(@"c:\output.sln", g => g, t => false);
-            sw.Write(new string[]{}, stringWriter);
+            var sw = new SolutionWriter(stringWriter, @"c:\output.sln", g => g, t => false);
+            sw.Write(new string[]{});
 
             var actual = stringWriter.ToString();
             Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 12.00
@@ -30,8 +30,8 @@ EndGlobal
         {
             var stringWriter = new StringWriter();
             var grouped = new [] { @"c:\MySln\MyProject\MyProject.csproj" };
-            var sw = new SlnWriter(@"c:\MySln\", f => "Folder", t => false);
-            sw.Write(grouped, stringWriter);
+            var sw = new SolutionWriter(stringWriter, @"c:\MySln\", f => "Folder", t => false);
+            sw.Write(grouped);
 
             var actual = stringWriter.ToString().Split(new [] { Environment.NewLine }, StringSplitOptions.None);
 
@@ -46,8 +46,8 @@ EndGlobal
         {
             var stringWriter = new StringWriter();
             var grouped = new[] { @"c:\MySln\MyProject\MyProject.Test.csproj" };
-            var sw = new SlnWriter(@"c:\MySln\", f => "Folder", t => true);
-            sw.Write(grouped, stringWriter);
+            var sw = new SolutionWriter(stringWriter, @"c:\MySln\", f => "Folder", t => true);
+            sw.Write(grouped);
 
             var actual = stringWriter.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
