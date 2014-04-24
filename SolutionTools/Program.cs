@@ -47,15 +47,14 @@ namespace SolutionTools
 
         private static void DisplayHelp(string command)
         {
+            DisplayHelpHeader();
+
             throw new NotImplementedException();
         }
 
         private static void DisplayHelp()
         {
-            Console.WriteLine(@"{0} - {1} - {2}\n",
-                              Assembly.GetExecutingAssembly().GetName().Name,
-                              Assembly.GetExecutingAssembly().GetName().Version,
-                              "https://github.com/dave-hillier/SolutionTools");
+            DisplayHelpHeader();
 
             Console.WriteLine(@"Usage:
     {0} <command> <project|solution|directory> [command options|options]
@@ -74,6 +73,14 @@ Options:
 
 ",
              Assembly.GetExecutingAssembly().GetName().Name);
+        }
+
+        private static void DisplayHelpHeader()
+        {
+            Console.WriteLine(@"{0} - {1} - {2}",
+                              Assembly.GetExecutingAssembly().GetName().Name,
+                              Assembly.GetExecutingAssembly().GetName().Version,
+                              "https://github.com/dave-hillier/SolutionTools");
         }
 
         private static TextWriter GetOutputTextWriter(string[] args)
