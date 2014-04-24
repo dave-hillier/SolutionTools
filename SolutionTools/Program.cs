@@ -46,19 +46,29 @@ namespace SolutionTools
                 var sln = args[1];
                 var input = args[2];
 
-                var exclude = args.SkipWhile(a => a != "--exclude").Skip(1).FirstOrDefault();
-                var include = args.SkipWhile(a => a != "--include").Skip(1).FirstOrDefault();
+                var filter = CreateFilter(args);
 
                 // TODO: group by namespace, group by folder, group by regex?
-                GenerateSolution(input, sln, new ProjectFilter(include, exclude));
+                GenerateSolution(input, sln, filter);
             }
             else if (verb == "graph" && args.Length > 1)
             {
                 var subOption = args[1];
                 var projects = GetProjectsAndDependencies(subOption);
+                
+                var filter = CreateFilter(args);
+                projects = filter.ApplyFilters(projects);
+
                 var drawAssemblyReferences = args.Any(a => a.ToLowerInvariant() == "--assemblyreferences");
                 GraphPrinter.PrintDependencyGraph(projects, drawAssemblyReferences, Console.Out);
             }
+        }
+
+        private static ProjectFilter CreateFilter(string[] args)
+        {
+            var exclude = args.SkipWhile(a => a != "--exclude").Skip(1).FirstOrDefault();
+            var include = args.SkipWhile(a => a != "--include").Skip(1).FirstOrDefault();
+            return new ProjectFilter(include, exclude);
         }
 
         private static void PrintProjects(IEnumerable<string> projects)
@@ -78,7 +88,7 @@ namespace SolutionTools
             if (Path.GetExtension(subOption) == ".sln")
             {
                 var directory = Path.GetDirectoryName(subOption);
-                return SolutionReader.GetProjects(subOption).Select(fn => directory != null ? Path.Combine(directory, fn) : null).
+                return SolutionReader.ReadAllProjects(subOption).Select(fn => directory != null ? Path.Combine(directory, fn) : null).
                     Where(fn => fn != null);
             }
             if (PathHelper.IsDirectory(subOption))
@@ -102,8 +112,7 @@ namespace SolutionTools
                        from dep in ProjectListBuilder.FindAllDependencies(f)
                        select dep;
 
-            deps = deps.Concat(projects);
-            return deps.OrderByDescending(a => a).Distinct();
+            return deps.Concat(projects).OrderByDescending(a => a).Distinct();
         }
 
         private static void WriteSlnFromStdIn(string outputSlnPath)
