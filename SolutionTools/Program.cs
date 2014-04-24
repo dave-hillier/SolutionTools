@@ -66,13 +66,13 @@ Commands:
     help    Display this help or help for a command
 
 Options:
+    --in <file>       Read the list of projects from a file 
     --out <file>      File to save the result to 
-    --consolein       Read the input from the console
+    --consolein       Read the list of projects from the console
     --include <regex> Only include projects matching the expression
     --exclude <regex> Exclude projects matching the expression
 
-",
-             Assembly.GetExecutingAssembly().GetName().Name);
+", Assembly.GetExecutingAssembly().GetName().Name);
         }
 
         private static void DisplayHelpHeader()
@@ -90,6 +90,11 @@ Options:
 
         private static IProjectReader CreateProjectReader(string[] args)
         {
+            if (IsOptionSet(args, "--in"))
+            {
+                var streamReader = File.OpenText(GetOption(args, "--in"));
+                return new ProjectStreamReader(streamReader);
+            }
             if (IsOptionSet(args, "--consolein"))
             {
                 return new ProjectStreamReader(Console.In);
