@@ -7,12 +7,12 @@ namespace SolutionTools
 {
     internal class SolutionReader
     {
-        public static IEnumerable<string> GetProjects(string subOption)
+        public static IEnumerable<string> ReadAllProjects(string subOption)
         {
             using (var f = File.OpenText(subOption))
             {
                 var lines = ReadLines(f);
-                return GetProjects(lines);
+                return ReadAllProjects(lines);
             }
         }
 
@@ -24,7 +24,7 @@ namespace SolutionTools
             return lines;
         }
 
-        private static IEnumerable<string> GetProjects(IEnumerable<string> lines)
+        private static IEnumerable<string> ReadAllProjects(IEnumerable<string> lines)
         {
             var re = new Regex(@"Project\("".+?""\) = ""(.+?)"", ""(.+?)"", "".+?""");
             return from line in lines

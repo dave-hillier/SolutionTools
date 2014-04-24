@@ -47,6 +47,7 @@
     <Compile Include="MemoizeExt.cs" />
     <Compile Include="PathHelper.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ProjectFilter.cs" />
     <Compile Include="ProjectListBuilder.cs" />
     <Compile Include="ProjectReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

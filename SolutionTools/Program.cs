@@ -50,7 +50,7 @@ namespace SolutionTools
                 var include = args.SkipWhile(a => a != "--include").Skip(1).FirstOrDefault();
 
                 // TODO: group by namespace, group by folder, group by regex?
-                GenerateSolution(input, sln, exclude, include);
+                GenerateSolution(input, sln, new ProjectFilter(include, exclude));
             }
             else if (verb == "graph" && args.Length > 1)
             {
@@ -88,13 +88,10 @@ namespace SolutionTools
             throw new NotSupportedException();
         }
 
-        private static void GenerateSolution(string input, string sln, string excludeRegex, string includeRegex)
+        private static void GenerateSolution(string input, string sln, ProjectFilter projectFilter)
         {
             var projects = GetProjectsAndDependencies(input);
-            
-            var filter = new ProjectFilter(includeRegex, excludeRegex);
-            projects = filter.ApplyFilters(projects);
-
+            projects = projectFilter.ApplyFilters(projects);
             SolutionWriter.WriteSolution(projects, sln, path => FolderSelector.GetSlnFolder(sln, path), IsTestProject);
         }
 
