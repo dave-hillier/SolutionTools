@@ -7,9 +7,9 @@ namespace SolutionTools
 {
     internal class SolutionWriter
     {
-        public static void WriteSolution(IEnumerable<string> projects, 
-            string outputSlnPath, 
-            Func<string, string> folderNameSelector, 
+        public static void WriteSolution(IEnumerable<string> projects,
+            string outputSlnPath,
+            Func<string, string> folderNameSelector,
             Func<string, bool> isTestFolder)
         {
             string slnDirectory = Path.GetDirectoryName(outputSlnPath) + Path.DirectorySeparatorChar;
@@ -22,15 +22,15 @@ namespace SolutionTools
 
         private static void WriteHeader(TextWriter writer)
         {
-            //Microsoft Visual Studio Solution File, Format Version 12.00
-            //# Visual Studio 2012
+            //Microsoft Visual Studio Solution File, Format Version 11.00
+            //# Visual Studio 2010
 
-            writer.WriteLine("Microsoft Visual Studio Solution File, Format Version 11.00"); // TODO: parameterize
-            writer.WriteLine("# Visual Studio 2010");
+            writer.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00"); // TODO: parameterize
+            writer.WriteLine("# Visual Studio 2012");
         }
 
-        public static void WriteSolution(string solutionDirectory, TextWriter writer, 
-            IEnumerable<IGrouping<string, string>> grouped, 
+        public static void WriteSolution(string solutionDirectory, TextWriter writer,
+            IEnumerable<IGrouping<string, string>> grouped,
             Func<string, bool> isTestFolder)
         {
             WriteHeader(writer);
@@ -41,6 +41,7 @@ namespace SolutionTools
             foreach (var group in grouped)
             {
                 var projectFolder = Guid.NewGuid();
+
                 WriteProject(writer, projectFolder, @group.Key);
 
                 var testProjects = false;
@@ -52,16 +53,12 @@ namespace SolutionTools
                     if (fileName != null && seenElements.Add(relative))
                     {
                         var projectEntryGuid = Guid.NewGuid();
-                        // HACK: put a zero in place of the project guid. I dont know what this should be.
                         WriteProject(writer, fileName, relative, projectEntryGuid);
 
-                        if (isTestFolder(fileName))
+                        if (!string.IsNullOrEmpty(@group.Key))
                         {
-                            nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, testFolderGuid));
-                            testProjects = true;
+                            testProjects = AddToNestedFolders(isTestFolder, fileName, nestedFolderGuids, projectEntryGuid, testFolderGuid, testProjects, projectFolder);
                         }
-                        else
-                            nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, projectFolder));
                     }
                     // TODO: error?
                 }
@@ -78,8 +75,22 @@ namespace SolutionTools
             writer.WriteLine("EndGlobal");
         }
 
+        private static bool AddToNestedFolders(Func<string, bool> isTestFolder, string fileName, List<string> nestedFolderGuids, Guid projectEntryGuid,
+                                               Guid testFolderGuid, bool testProjects, Guid projectFolder)
+        {
+            if (isTestFolder(fileName))
+            {
+                nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, testFolderGuid));
+                testProjects = true;
+            }
+            else
+                nestedFolderGuids.Add(String.Format("{{{0}}} = {{{1}}}", projectEntryGuid, projectFolder));
+            return testProjects;
+        }
+
         private static void WriteProject(TextWriter writer, string fileName, string relative, Guid projectEntryGuid)
         {
+            // HACK: put a zero in place of the project guid. I dont know what this should be.
             writer.WriteLine(@"Project(""0"") = ""{0}"", ""{1}"",""{{{2}}}""", fileName, relative, projectEntryGuid);
             writer.WriteLine("EndProject");
         }

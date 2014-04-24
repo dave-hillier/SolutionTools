@@ -11,5 +11,10 @@ namespace SolutionTools
             var stringToUnescape = relativeUrl.Replace('/', Path.DirectorySeparatorChar);
             return Uri.UnescapeDataString(stringToUnescape);
         }
+
+        public static bool IsDirectory(string input)
+        {
+            return (File.GetAttributes(input) & FileAttributes.Directory) != 0;
+        }
     }
 }

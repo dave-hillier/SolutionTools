@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SolutionTools
 {
     public class Program
     {
+        private static readonly Regex TestFolderRegex = new Regex("[Tt]est");
         private static void Main(string[] args)
         {
             var verb = args[0];
@@ -43,14 +45,15 @@ namespace SolutionTools
             {
                 var sln = args[1];
                 var input = args[2];
-                GenerateSolution(input, sln);
+                // TODO: inclusive and exclusive filters
+                GenerateSolution(input, sln, null, null);
             }
             else if (verb == "graph" && args.Length > 1)
             {
                 var subOption = args[1];
                 var projects = GetProjectsAndDependencies(subOption);
                 var drawAssemblyReferences = args.Any(a => a.ToLowerInvariant() == "--assemblyreferences");
-                PrintDependencyGraph(projects, drawAssemblyReferences, Console.Out);
+                GraphPrinter.PrintDependencyGraph(projects, drawAssemblyReferences, Console.Out);
             }
         }
 
@@ -60,50 +63,6 @@ namespace SolutionTools
             {
                 Console.WriteLine("{0}", project);
             }
-        }
-
-        private static void PrintDependencyGraph(IEnumerable<string> projects, bool drawAssemblyReferences, TextWriter textWriter)
-        {
-            //http://stamm-wilbrandt.de/GraphvizFiddle/
-            projects = projects.ToArray();
-
-            textWriter.WriteLine("digraph dependencies {");
-            textWriter.Write("\tnode[shape = box]; ");
-            foreach (var project in projects)
-            {
-                textWriter.Write("\"{0}\";", ProjectReader.GetName(project));
-                
-            }
-            textWriter.WriteLine();
-
-            if (drawAssemblyReferences)
-            {
-                var refs = from project in projects
-                           from aref in ProjectReader.GetAssemblyReferences(project)
-                           select aref;
-                textWriter.Write("\tnode[shape = ellipse]; ");
-                foreach (var aref in refs)
-                {
-                    textWriter.Write("\"{0}\";", aref);
-                }
-            }
-
-            textWriter.WriteLine();
-            foreach (var project in projects)
-            {
-                foreach (var reference in ProjectReader.GetProjectReferences(project))
-                {
-                    textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), ProjectReader.GetName(reference));
-                }
-                if (drawAssemblyReferences)
-                {
-                    foreach (var reference in ProjectReader.GetAssemblyReferences(project))
-                    {
-                        textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), reference);
-                    }
-                }
-            }
-            textWriter.WriteLine("}");
         }
 
         private static IEnumerable<string> GetProjectsAndDependencies(string subOption)
@@ -118,18 +77,45 @@ namespace SolutionTools
                 return SolutionReader.GetProjects(subOption).Select(fn => directory != null ? Path.Combine(directory, fn) : null).
                     Where(fn => fn != null);
             }
-            if (IsDirectory(subOption))
+            if (PathHelper.IsDirectory(subOption))
             {
                 return GetProjectsAndDependenciesInDirectory(subOption);
             }
             throw new NotSupportedException();
         }
 
-        private static void GenerateSolution(string input, string sln)
+        private static void GenerateSolution(string input, string sln, string excludeRegex, string includeRegex)
         {
             var projects = GetProjectsAndDependencies(input);
-            // TODO: exclude regex?
+            projects = ApplyFilters(excludeRegex, includeRegex, projects);
             SolutionWriter.WriteSolution(projects, sln, path => GetSlnFolder(sln, path), IsTestProject);
+        }
+
+        private static IEnumerable<string> ApplyFilters(string excludeRegex, string includeRegex, IEnumerable<string> projects)
+        {
+            projects = InclusiveFilter(includeRegex, projects);
+            projects = ExclusiveFilter(excludeRegex, projects);
+            return projects;
+        }
+
+        private static IEnumerable<string> ExclusiveFilter(string excludeRegex, IEnumerable<string> projects)
+        {
+            if (excludeRegex != null)
+            {
+                var re = new Regex(excludeRegex);
+                projects = projects.Where(p => !re.IsMatch(p));
+            }
+            return projects;
+        }
+
+        private static IEnumerable<string> InclusiveFilter(string includeRegex, IEnumerable<string> projects)
+        {
+            if (includeRegex != null)
+            {
+                var re = new Regex(includeRegex);
+                projects = projects.Where(p => re.IsMatch(p));
+            }
+            return projects;
         }
 
         private static IEnumerable<string> GetProjectsAndDependenciesInDirectory(string directory)
@@ -152,7 +138,7 @@ namespace SolutionTools
 
         private static bool IsTestProject(string fn)
         {
-            return fn.ToLowerInvariant().Contains("test");
+            return TestFolderRegex.IsMatch(fn);
         }
 
         public static string GetSlnFolder(string sln, string project)
@@ -162,7 +148,7 @@ namespace SolutionTools
             var next = Path.GetDirectoryName(projectDir);
             if (next == slnDir)
                 return "";
-
+            // TODO: null checks
 
             while (slnDir != next)
             {
@@ -171,11 +157,6 @@ namespace SolutionTools
             }
 
             return projectDir.Substring(slnDir.Length).Trim('\\');
-        }
-
-        private static bool IsDirectory(string input)
-        {
-            return (File.GetAttributes(input) & FileAttributes.Directory) != 0;
         }
     }
 }
