@@ -42,7 +42,8 @@ namespace SolutionTools
             {
                 var projectFolder = Guid.NewGuid();
 
-                WriteProject(writer, projectFolder, @group.Key);
+                if (group.Key != "")
+                    WriteProject(writer, projectFolder, @group.Key);
 
                 var testProjects = false;
                 var testFolderGuid = Guid.NewGuid();
