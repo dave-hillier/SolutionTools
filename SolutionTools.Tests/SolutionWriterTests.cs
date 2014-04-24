@@ -16,8 +16,8 @@ namespace SolutionTools.Tests
             SolutionWriter.WriteSolution(@"c:\", stringWriter, grouped, t => false);
 
             var actual = stringWriter.ToString();
-            Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+            Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Global
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

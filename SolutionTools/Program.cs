@@ -9,19 +9,38 @@ namespace SolutionTools
     public class Program
     {
         private static readonly Regex TestFolderRegex = new Regex("[Tt]est");
+
         private static void Main(string[] args)
         {
             if (args.Length < 1)
                 return;
 
-            var subOption = args[1];
-            var projects = GetProjectsAndDependencies(subOption);
+            var projectReader = CreateProjectReader(args);
 
             var filter = CreateFilter(args);
-            projects = filter.ApplyFilters(projects);
+            var projects = filter.ApplyFilters(projectReader.GetProjects());
 
             var writer = CreateWriter(args);
             writer.Write(projects, Console.Out);
+        }
+
+        private static IProjectReader CreateProjectReader(string[] args)
+        {
+            var subOption = args[0];
+            if (ProjectListBuilder.HasProjectExtension(subOption))
+            {
+                return new ProjectDependenciesReader(subOption);
+            }
+            if (Path.GetExtension(subOption) == ".sln")
+            {
+                return new SolutionProjectsReader(subOption);
+            }
+            if (PathHelper.IsDirectory(subOption))
+            {
+                return new DirectoryReader(subOption);
+            }
+            // TODO: command line reader
+            throw new NotSupportedException();
         }
 
         private static IProjectListWriter CreateWriter(string[] args)
@@ -37,42 +56,9 @@ namespace SolutionTools
 
         private static ProjectFilter CreateFilter(string[] args)
         {
-            var exclude = args.SkipWhile(a => a != "--exclude").Skip(1).FirstOrDefault();
-            var include = args.SkipWhile(a => a != "--include").Skip(1).FirstOrDefault();
+            var exclude = args.SkipWhile(a => a.ToLowerInvariant() != "--exclude").Skip(1).FirstOrDefault();
+            var include = args.SkipWhile(a => a.ToLowerInvariant() != "--include").Skip(1).FirstOrDefault();
             return new ProjectFilter(include, exclude);
-        }
-
-        private static IEnumerable<string> GetProjectsAndDependencies(string subOption)
-        {
-            if (ProjectListBuilder.HasProjectExtension(subOption))
-            {
-                return ProjectListBuilder.FindAllDependencies(subOption).Concat(new[] { subOption });
-            }
-            if (Path.GetExtension(subOption) == ".sln")
-            {
-                return ReadAllProjectsFromSolution(subOption);
-            }
-            if (PathHelper.IsDirectory(subOption))
-            {
-                return GetProjectsAndDependenciesInDirectory(subOption);
-            }
-            throw new NotSupportedException();
-        }
-
-        private static IEnumerable<string> ReadAllProjectsFromSolution(string subOption)
-        {
-            var directory = Path.GetDirectoryName(subOption);
-            return SolutionReader.ReadAllProjects(subOption).
-                Select(fn => directory != null ? Path.Combine(directory, fn) : null).Where(fn => fn != null);
-        }
-
-        private static IEnumerable<string> GetProjectsAndDependenciesInDirectory(string directory)
-        {
-            var projects = ProjectListBuilder.FindProjects(directory).ToArray();
-            var deps = from f in projects
-                       from dep in ProjectListBuilder.FindAllDependencies(f)
-                       select dep;
-            return deps.Concat(projects).OrderByDescending(a => a).Distinct();
         }
 
         private static bool IsTestProject(string fn)
