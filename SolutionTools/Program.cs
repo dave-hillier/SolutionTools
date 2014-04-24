@@ -45,8 +45,12 @@ namespace SolutionTools
             {
                 var sln = args[1];
                 var input = args[2];
-                // TODO: inclusive and exclusive filters
-                GenerateSolution(input, sln, null, null);
+
+                var exclude = args.SkipWhile(a => a != "--exclude").Skip(1).FirstOrDefault();
+                var include = args.SkipWhile(a => a != "--include").Skip(1).FirstOrDefault();
+
+                // TODO: group by namespace, group by folder, group by regex?
+                GenerateSolution(input, sln, exclude, include);
             }
             else if (verb == "graph" && args.Length > 1)
             {
@@ -87,35 +91,11 @@ namespace SolutionTools
         private static void GenerateSolution(string input, string sln, string excludeRegex, string includeRegex)
         {
             var projects = GetProjectsAndDependencies(input);
-            projects = ApplyFilters(excludeRegex, includeRegex, projects);
+            
+            var filter = new ProjectFilter(includeRegex, excludeRegex);
+            projects = filter.ApplyFilters(projects);
+
             SolutionWriter.WriteSolution(projects, sln, path => FolderSelector.GetSlnFolder(sln, path), IsTestProject);
-        }
-
-        private static IEnumerable<string> ApplyFilters(string excludeRegex, string includeRegex, IEnumerable<string> projects)
-        {
-            projects = InclusiveFilter(includeRegex, projects);
-            projects = ExclusiveFilter(excludeRegex, projects);
-            return projects;
-        }
-
-        private static IEnumerable<string> ExclusiveFilter(string excludeRegex, IEnumerable<string> projects)
-        {
-            if (excludeRegex != null)
-            {
-                var re = new Regex(excludeRegex);
-                projects = projects.Where(p => !re.IsMatch(p));
-            }
-            return projects;
-        }
-
-        private static IEnumerable<string> InclusiveFilter(string includeRegex, IEnumerable<string> projects)
-        {
-            if (includeRegex != null)
-            {
-                var re = new Regex(includeRegex);
-                projects = projects.Where(p => re.IsMatch(p));
-            }
-            return projects;
         }
 
         private static IEnumerable<string> GetProjectsAndDependenciesInDirectory(string directory)
