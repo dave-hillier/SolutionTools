@@ -6,6 +6,35 @@ using System.Text.RegularExpressions;
 
 namespace SolutionTools
 {
+    public class FolderSelector
+    {
+        public static string GetSlnFolderByNamespace(string sln, string project)
+        {
+            var fn = Path.GetFileName(project);
+            var s = fn.Split('.');
+            return string.Join(".", s.Take(2));
+        }
+
+        public static string GetSlnFolder(string sln, string project)
+        {
+
+            var slnDir = Path.GetDirectoryName(sln);
+            var projectDir = Path.GetDirectoryName(project);
+            var next = Path.GetDirectoryName(projectDir);
+            if (next == slnDir)
+                return "";
+            // TODO: null checks
+
+            while (slnDir != next)
+            {
+                projectDir = next; 
+                next = Path.GetDirectoryName(projectDir);
+            }
+
+            return projectDir.Substring(slnDir.Length).Trim('\\');
+        }
+    }
+
     public class Program
     {
         private static readonly Regex TestFolderRegex = new Regex("[Tt]est");
@@ -88,7 +117,7 @@ namespace SolutionTools
         {
             var projects = GetProjectsAndDependencies(input);
             projects = ApplyFilters(excludeRegex, includeRegex, projects);
-            SolutionWriter.WriteSolution(projects, sln, path => GetSlnFolder(sln, path), IsTestProject);
+            SolutionWriter.WriteSolution(projects, sln, path => FolderSelector.GetSlnFolder(sln, path), IsTestProject);
         }
 
         private static IEnumerable<string> ApplyFilters(string excludeRegex, string includeRegex, IEnumerable<string> projects)
@@ -133,30 +162,12 @@ namespace SolutionTools
         {
             var stdin = Console.In.ReadToEnd();
             var lines = stdin.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            SolutionWriter.WriteSolution(lines, outputSlnPath, path => GetSlnFolder(outputSlnPath, path), IsTestProject);
+            SolutionWriter.WriteSolution(lines, outputSlnPath, path => FolderSelector.GetSlnFolder(outputSlnPath, path), IsTestProject);
         }
 
         private static bool IsTestProject(string fn)
         {
             return TestFolderRegex.IsMatch(fn);
-        }
-
-        public static string GetSlnFolder(string sln, string project)
-        {
-            var slnDir = Path.GetDirectoryName(sln);
-            var projectDir = Path.GetDirectoryName(project);
-            var next = Path.GetDirectoryName(projectDir);
-            if (next == slnDir)
-                return "";
-            // TODO: null checks
-
-            while (slnDir != next)
-            {
-                projectDir = next; 
-                next = Path.GetDirectoryName(projectDir);
-            }
-
-            return projectDir.Substring(slnDir.Length).Trim('\\');
         }
     }
 }
