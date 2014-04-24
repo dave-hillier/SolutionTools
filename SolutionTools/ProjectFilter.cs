@@ -6,26 +6,24 @@ namespace SolutionTools
 {
     public class ProjectFilter
     {
-        private readonly string _include;
-        private readonly string _exclude;
+        private readonly Regex _includeRegex;
+        private readonly Regex _excludeRegex;
 
         public ProjectFilter(string include, string exclude)
         {
-            _include = include;
-            _exclude = exclude;
+            _includeRegex = include != null ? new Regex(include) : null;
+            _excludeRegex = exclude != null ? new Regex(exclude) : null;
         }
 
         public IEnumerable<string> ApplyFilters(IEnumerable<string> projects)
         {
-            if (_include != null)
+            if (_includeRegex != null)
             {
-                var re = new Regex(_include);
-                projects = projects.Where(p => re.IsMatch(p));
+                projects = projects.Where(p => _includeRegex.IsMatch(p));
             }
-            if (_exclude != null)
+            if (_excludeRegex != null)
             {
-                var re1 = new Regex(_exclude);
-                projects = projects.Where(p => !re1.IsMatch(p));
+                projects = projects.Where(p => !_excludeRegex.IsMatch(p));
             }
             return projects;
         }

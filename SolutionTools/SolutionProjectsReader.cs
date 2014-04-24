@@ -7,6 +7,7 @@ namespace SolutionTools
 {
     class SolutionProjectsReader : IProjectReader
     {
+        private static readonly Regex ProjectRegex = new Regex(@"Project\("".+?""\) = ""(.+?)"", ""(.+?)"", "".+?""");
         private readonly string _slnPath;
 
         public SolutionProjectsReader(string slnPath)
@@ -36,9 +37,8 @@ namespace SolutionTools
 
         private static IEnumerable<string> ReadAllProjects(IEnumerable<string> lines)
         {
-            var re = new Regex(@"Project\("".+?""\) = ""(.+?)"", ""(.+?)"", "".+?""");
             return from line in lines
-                   let matches = re.Match(line) // TODO: use matches?
+                   let matches = ProjectRegex.Match(line) // TODO: use matches?
                    where matches.Success && matches.Groups.Count == 3 && matches.Groups[1].Value != matches.Groups[2].Value
                    select matches.Groups[2].Value;
         }

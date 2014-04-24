@@ -22,7 +22,6 @@ namespace SolutionTools.Tests
         public void NotExt()
         {
             const string sln = @"c:\project\project.sln";
-
             Assert.IsFalse(ProjectListBuilder.HasProjectExtension(sln));
         }
     }

@@ -57,7 +57,6 @@
     <Compile Include="ProjectReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolutionProjectsReader.cs" />
-    <Compile Include="SolutionReader.cs" />
     <Compile Include="SolutionWriter.cs" />
   </ItemGroup>
   <ItemGroup>

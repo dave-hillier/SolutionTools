@@ -25,10 +25,7 @@ namespace SolutionTools
         {
             string slnDirectory = Path.GetDirectoryName(_outputSlnPath) + Path.DirectorySeparatorChar;
             var grouped = projects.GroupBy(_folderNameSelector);
-            using (var writer = new StreamWriter(_outputSlnPath))
-            {
-                WriteSolution(slnDirectory, writer, grouped, _isTestFolder);
-            }
+            WriteSolution(slnDirectory, textWriter, grouped, _isTestFolder);
         }
 
         private static void WriteHeader(TextWriter writer)

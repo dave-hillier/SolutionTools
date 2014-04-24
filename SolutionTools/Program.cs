@@ -16,11 +16,11 @@ namespace SolutionTools
                 return;
 
             var projectReader = CreateProjectReader(args);
-
             var filter = CreateFilter(args);
-            var projects = filter.ApplyFilters(projectReader.GetProjects());
-
             var writer = CreateWriter(args);
+
+            var projects = projectReader.GetProjects();
+            projects = filter.ApplyFilters(projects);
             writer.Write(projects, Console.Out);
         }
 
@@ -56,9 +56,14 @@ namespace SolutionTools
 
         private static ProjectFilter CreateFilter(string[] args)
         {
-            var exclude = args.SkipWhile(a => a.ToLowerInvariant() != "--exclude").Skip(1).FirstOrDefault();
-            var include = args.SkipWhile(a => a.ToLowerInvariant() != "--include").Skip(1).FirstOrDefault();
+            var exclude = GetOption(args, "--exclude");
+            var include = GetOption(args, "--include");
             return new ProjectFilter(include, exclude);
+        }
+
+        private static string GetOption(IEnumerable<string> args, string option)
+        {
+            return args.SkipWhile(a => a.ToLowerInvariant() != option).Skip(1).FirstOrDefault();
         }
 
         private static bool IsTestProject(string fn)
