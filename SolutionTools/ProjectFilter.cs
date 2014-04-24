@@ -17,27 +17,15 @@ namespace SolutionTools
 
         public IEnumerable<string> ApplyFilters(IEnumerable<string> projects)
         {
-            projects = InclusiveFilter(_include, projects);
-            projects = ExclusiveFilter(_exclude, projects);
-            return projects;
-        }
-
-        private static IEnumerable<string> ExclusiveFilter(string excludeRegex, IEnumerable<string> projects)
-        {
-            if (excludeRegex != null)
+            if (_include != null)
             {
-                var re = new Regex(excludeRegex);
-                projects = projects.Where(p => !re.IsMatch(p));
-            }
-            return projects;
-        }
-
-        private static IEnumerable<string> InclusiveFilter(string includeRegex, IEnumerable<string> projects)
-        {
-            if (includeRegex != null)
-            {
-                var re = new Regex(includeRegex);
+                var re = new Regex(_include);
                 projects = projects.Where(p => re.IsMatch(p));
+            }
+            if (_exclude != null)
+            {
+                var re1 = new Regex(_exclude);
+                projects = projects.Where(p => !re1.IsMatch(p));
             }
             return projects;
         }

@@ -42,8 +42,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BasicListWriter.cs" />
     <Compile Include="FolderSelector.cs" />
-    <Compile Include="GraphPrinter.cs" />
+    <Compile Include="GraphWriter.cs" />
+    <Compile Include="IProjectListWriter.cs" />
     <Compile Include="MemoizeExt.cs" />
     <Compile Include="PathHelper.cs" />
     <Compile Include="Program.cs" />

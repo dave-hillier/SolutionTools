@@ -11,57 +11,28 @@ namespace SolutionTools
         private static readonly Regex TestFolderRegex = new Regex("[Tt]est");
         private static void Main(string[] args)
         {
-            var verb = args[0];
-            if (verb == "help")
-            {
-                var subOption = args.Length > 1 ? args[1] : "";
-                if (subOption == "list")
-                    Console.WriteLine("list (project|solution|directory)");
-                if (subOption == "sln")
-                    Console.WriteLine("sln (input sln)");
-                else if (subOption == "graph")
-                    Console.WriteLine("graph (project|solution|directory)");
-                else
-                {
-                    Console.WriteLine("\tlist");
-                    Console.WriteLine("\tsln");
-                    Console.WriteLine("\tauto");
-                    Console.WriteLine("\tgraph");
+            if (args.Length < 1)
+                return;
 
-                }
-            }
-            else if (verb == "list" && args.Length > 1)
-            {
-                var subOption = args[1];
-                var projects = GetProjectsAndDependencies(subOption);
-                PrintProjects(projects);
-            }
-            else if (verb == "sln" && args.Length > 1)
-            {
-                var outputSlnPath = args[1];
-                WriteSlnFromStdIn(outputSlnPath);
-            }
-            else if (verb == "auto" && args.Length > 2)
-            {
-                var sln = args[1];
-                var input = args[2];
+            var subOption = args[1];
+            var projects = GetProjectsAndDependencies(subOption);
 
-                var filter = CreateFilter(args);
+            var filter = CreateFilter(args);
+            projects = filter.ApplyFilters(projects);
 
-                // TODO: group by namespace, group by folder, group by regex?
-                GenerateSolution(input, sln, filter);
-            }
-            else if (verb == "graph" && args.Length > 1)
-            {
-                var subOption = args[1];
-                var projects = GetProjectsAndDependencies(subOption);
-                
-                var filter = CreateFilter(args);
-                projects = filter.ApplyFilters(projects);
+            var writer = CreateWriter(args);
+            writer.Write(projects, Console.Out);
+        }
 
-                var drawAssemblyReferences = args.Any(a => a.ToLowerInvariant() == "--assemblyreferences");
-                GraphPrinter.PrintDependencyGraph(projects, drawAssemblyReferences, Console.Out);
-            }
+        private static IProjectListWriter CreateWriter(string[] args)
+        {
+            if (args[0] == "graph")
+                return new GraphWriter(args.Any(a => a.ToLowerInvariant() == "--assemblyreferences"));
+            if (args[0] == "list")
+                return new BasicListWriter();
+            if (args[0] == "auto")
+                return new SlnWriter(args[2], path => FolderSelector.GetSlnFolder(args[2], path), IsTestProject);
+            throw new NotSupportedException();
         }
 
         private static ProjectFilter CreateFilter(string[] args)
@@ -69,14 +40,6 @@ namespace SolutionTools
             var exclude = args.SkipWhile(a => a != "--exclude").Skip(1).FirstOrDefault();
             var include = args.SkipWhile(a => a != "--include").Skip(1).FirstOrDefault();
             return new ProjectFilter(include, exclude);
-        }
-
-        private static void PrintProjects(IEnumerable<string> projects)
-        {
-            foreach (var project in projects)
-            {
-                Console.WriteLine("{0}", project);
-            }
         }
 
         private static IEnumerable<string> GetProjectsAndDependencies(string subOption)
@@ -87,9 +50,7 @@ namespace SolutionTools
             }
             if (Path.GetExtension(subOption) == ".sln")
             {
-                var directory = Path.GetDirectoryName(subOption);
-                return SolutionReader.ReadAllProjects(subOption).Select(fn => directory != null ? Path.Combine(directory, fn) : null).
-                    Where(fn => fn != null);
+                return ReadAllProjectsFromSolution(subOption);
             }
             if (PathHelper.IsDirectory(subOption))
             {
@@ -98,11 +59,11 @@ namespace SolutionTools
             throw new NotSupportedException();
         }
 
-        private static void GenerateSolution(string input, string sln, ProjectFilter projectFilter)
+        private static IEnumerable<string> ReadAllProjectsFromSolution(string subOption)
         {
-            var projects = GetProjectsAndDependencies(input);
-            projects = projectFilter.ApplyFilters(projects);
-            SolutionWriter.WriteSolution(projects, sln, path => FolderSelector.GetSlnFolder(sln, path), IsTestProject);
+            var directory = Path.GetDirectoryName(subOption);
+            return SolutionReader.ReadAllProjects(subOption).
+                Select(fn => directory != null ? Path.Combine(directory, fn) : null).Where(fn => fn != null);
         }
 
         private static IEnumerable<string> GetProjectsAndDependenciesInDirectory(string directory)
@@ -111,15 +72,7 @@ namespace SolutionTools
             var deps = from f in projects
                        from dep in ProjectListBuilder.FindAllDependencies(f)
                        select dep;
-
             return deps.Concat(projects).OrderByDescending(a => a).Distinct();
-        }
-
-        private static void WriteSlnFromStdIn(string outputSlnPath)
-        {
-            var stdin = Console.In.ReadToEnd();
-            var lines = stdin.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            SolutionWriter.WriteSolution(lines, outputSlnPath, path => FolderSelector.GetSlnFolder(outputSlnPath, path), IsTestProject);
         }
 
         private static bool IsTestProject(string fn)

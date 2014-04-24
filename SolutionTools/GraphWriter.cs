@@ -4,9 +4,16 @@ using System.Linq;
 
 namespace SolutionTools
 {
-    public class GraphPrinter
+    public class GraphWriter : IProjectListWriter
     {
-        public static void PrintDependencyGraph(IEnumerable<string> projects, bool drawAssemblyReferences, TextWriter textWriter)
+        private readonly bool _drawAssemblyReferences;
+
+        public GraphWriter(bool drawAssemblyReferences)
+        {
+            _drawAssemblyReferences = drawAssemblyReferences;
+        }
+
+        public void Write(IEnumerable<string> projects, TextWriter textWriter)
         {
             //http://stamm-wilbrandt.de/GraphvizFiddle/
             projects = projects.ToArray();
@@ -14,7 +21,7 @@ namespace SolutionTools
             textWriter.WriteLine("digraph dependencies {");
             WriteProjectNodes(projects, textWriter);
 
-            if (drawAssemblyReferences)
+            if (_drawAssemblyReferences)
             {
                 WriteAssemblyNodes(projects, textWriter);
             }
@@ -23,7 +30,7 @@ namespace SolutionTools
             foreach (var project in projects)
             {
                 WriteProjectReferences(textWriter, project);
-                if (drawAssemblyReferences)
+                if (_drawAssemblyReferences)
                 {
                     WriteAssemblyReferences(textWriter, project);
                 }

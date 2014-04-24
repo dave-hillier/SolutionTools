@@ -5,18 +5,29 @@ using System.Linq;
 
 namespace SolutionTools
 {
-    internal class SolutionWriter
+
+    internal class SlnWriter : IProjectListWriter
     {
-        public static void WriteSolution(IEnumerable<string> projects,
-            string outputSlnPath,
+        private readonly string _outputSlnPath;
+        private readonly Func<string, string> _folderNameSelector;
+        private readonly Func<string, bool> _isTestFolder;
+
+        public SlnWriter(string outputSlnPath,
             Func<string, string> folderNameSelector,
             Func<string, bool> isTestFolder)
         {
-            string slnDirectory = Path.GetDirectoryName(outputSlnPath) + Path.DirectorySeparatorChar;
-            var grouped = projects.GroupBy(folderNameSelector);
-            using (var writer = new StreamWriter(outputSlnPath))
+            _outputSlnPath = outputSlnPath;
+            _folderNameSelector = folderNameSelector;
+            _isTestFolder = isTestFolder;
+        }
+
+        public void Write(IEnumerable<string> projects, TextWriter textWriter)
+        {
+            string slnDirectory = Path.GetDirectoryName(_outputSlnPath) + Path.DirectorySeparatorChar;
+            var grouped = projects.GroupBy(_folderNameSelector);
+            using (var writer = new StreamWriter(_outputSlnPath))
             {
-                WriteSolution(slnDirectory, writer, grouped, isTestFolder);
+                WriteSolution(slnDirectory, writer, grouped, _isTestFolder);
             }
         }
 

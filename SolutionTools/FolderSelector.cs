@@ -5,6 +5,7 @@ namespace SolutionTools
 {
     public class FolderSelector
     {
+        // TODO: to strategies
         public static string GetSlnFolderByNamespace(string sln, string project)
         {
             var fn = Path.GetFileName(project);
