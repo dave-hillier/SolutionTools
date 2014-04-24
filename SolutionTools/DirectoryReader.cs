@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace SolutionTools
 {
+
     class DirectoryReader : IProjectReader
     {
         private readonly string _path;
@@ -15,9 +16,7 @@ namespace SolutionTools
         public IEnumerable<string> GetProjects()
         {
             var projects = ProjectListBuilder.FindProjects(_path).ToArray();
-            var deps = from f in projects
-                       from dep in ProjectListBuilder.FindAllDependencies(f)
-                       select dep;
+            var deps = from f in projects from dep in ProjectListBuilder.FindAllDependencies(f) select dep;
             return deps.Concat(projects).OrderByDescending(a => a).Distinct();
         }
     }

@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicListWriter.cs" />
+    <Compile Include="BasicWriter.cs" />
     <Compile Include="DirectoryReader.cs" />
     <Compile Include="FolderSelector.cs" />
     <Compile Include="GraphWriter.cs" />
@@ -54,7 +54,8 @@
     <Compile Include="ProjectDependenciesReader.cs" />
     <Compile Include="ProjectFilter.cs" />
     <Compile Include="ProjectListBuilder.cs" />
-    <Compile Include="ProjectReader.cs" />
+    <Compile Include="ProjectParser.cs" />
+    <Compile Include="ProjectStreamReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolutionProjectsReader.cs" />
     <Compile Include="SolutionWriter.cs" />

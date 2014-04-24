@@ -43,7 +43,7 @@ namespace SolutionTools
             textWriter.Write("\tnode[shape = box]; ");
             foreach (var project in projects)
             {
-                textWriter.Write("\"{0}\";", ProjectReader.GetName(project));
+                textWriter.Write("\"{0}\";", ProjectParser.GetName(project));
             }
             textWriter.WriteLine();
         }
@@ -51,7 +51,7 @@ namespace SolutionTools
         private static void WriteAssemblyNodes(IEnumerable<string> projects, TextWriter textWriter)
         {
             var refs = from project in projects
-                       from aref in ProjectReader.GetAssemblyReferences(project)
+                       from aref in ProjectParser.GetAssemblyReferences(project)
                        select aref;
             textWriter.Write("\tnode[shape = ellipse]; ");
             foreach (var aref in refs)
@@ -62,17 +62,17 @@ namespace SolutionTools
 
         private static void WriteAssemblyReferences(TextWriter textWriter, string project)
         {
-            foreach (var reference in ProjectReader.GetAssemblyReferences(project))
+            foreach (var reference in ProjectParser.GetAssemblyReferences(project))
             {
-                textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), reference);
+                textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectParser.GetName(project), reference);
             }
         }
 
         private static void WriteProjectReferences(TextWriter textWriter, string project)
         {
-            foreach (var reference in ProjectReader.GetProjectReferences(project))
+            foreach (var reference in ProjectParser.GetProjectReferences(project))
             {
-                textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectReader.GetName(project), ProjectReader.GetName(reference));
+                textWriter.WriteLine("\t\"{0}\"->\"{1}\";", ProjectParser.GetName(project), ProjectParser.GetName(reference));
             }
         }
     }

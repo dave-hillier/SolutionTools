@@ -23,7 +23,7 @@ namespace SolutionTools
 
         public static IEnumerable<string> FindAllDependencies(string proj)
         {
-            Func<string, string[]> tmp = a => ProjectReader.GetProjectReferences(a).ToArray();
+            Func<string, string[]> tmp = a => ProjectParser.GetProjectReferences(a).ToArray();
             var getReferencesMemoized = tmp.Memoize();
             return GetAllDependenciesRecursively(proj, getReferencesMemoized);
         }

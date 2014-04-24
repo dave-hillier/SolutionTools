@@ -39,7 +39,10 @@ namespace SolutionTools
             {
                 return new DirectoryReader(subOption);
             }
-            // TODO: command line reader
+            if (args.Any(a => a.ToLowerInvariant().Contains("--stdin")))
+            {
+                return new ProjectStreamReader(Console.In);
+            }
             throw new NotSupportedException();
         }
 
@@ -48,7 +51,7 @@ namespace SolutionTools
             if (args[0] == "graph")
                 return new GraphWriter(args.Any(a => a.ToLowerInvariant() == "--assemblyreferences"));
             if (args[0] == "list")
-                return new BasicListWriter();
+                return new BasicWriter();
             if (args[0] == "auto")
                 return new SlnWriter(args[2], path => FolderSelector.GetSlnFolder(args[2], path), IsTestProject);
             throw new NotSupportedException();

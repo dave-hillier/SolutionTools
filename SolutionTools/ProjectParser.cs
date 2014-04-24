@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace SolutionTools
 {
-    internal class ProjectReader
+    internal class ProjectParser
     {
         static readonly XNamespace Xs = "http://schemas.microsoft.com/developer/msbuild/2003";
 

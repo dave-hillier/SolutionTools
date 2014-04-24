@@ -3,7 +3,7 @@ using System.IO;
 
 namespace SolutionTools
 {
-    internal class BasicListWriter : IProjectListWriter
+    internal class BasicWriter : IProjectListWriter
     {
         public void Write(IEnumerable<string> projects, TextWriter textWriter)
         {
