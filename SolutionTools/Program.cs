@@ -9,8 +9,6 @@ namespace SolutionTools
 {
     public class Program
     {
-        private static readonly Regex TestFolderRegex = new Regex("[Tt]est");
-
         private static void Main(string[] args)
         {
             if (args.Length < 1 || args[0].ToLowerInvariant() == "help")
@@ -71,8 +69,8 @@ Options:
     --consolein       Read the list of projects from the console
     --include <regex> Only include projects matching the expression
     --exclude <regex> Exclude projects matching the expression
-
-", Assembly.GetExecutingAssembly().GetName().Name);
+  
+", typeof(Program).Assembly.GetName().Name);
         }
 
         private static void DisplayHelpHeader()
@@ -130,7 +128,8 @@ Options:
             if (verb == "auto")
             {
                 var folderSelector = new FolderSelector(args[2]);
-                return new SolutionWriter(writer, args[2], folderSelector.GetFolder, IsTestProject);
+                var testFolderRegex = new Regex("[Tt]est");
+                return new SolutionWriter(writer, args[2], folderSelector.GetFolder, testFolderRegex.IsMatch);
             }
             throw new NotSupportedException(string.Format("Unknown option: {0}", verb));
         }
@@ -145,11 +144,6 @@ Options:
         private static string GetOption(IEnumerable<string> args, string option)
         {
             return args.SkipWhile(a => a.ToLowerInvariant() != option).Skip(1).FirstOrDefault();
-        }
-
-        private static bool IsTestProject(string fn)
-        {
-            return TestFolderRegex.IsMatch(fn);
         }
     }
 }
