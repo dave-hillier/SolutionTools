@@ -7,3 +7,10 @@ Can be used to visualize the references between Visual Studio Projects and refer
 
 *Disclaimer:* 
 If you need this to automatically generate solutions (i.e. use this tool), then your project dependencies are likely too complex. Instead, you should attempt to simplify your project structure.
+
+TODO
+====
+- [ ] Fixup references
+- [ ] Project Names/Structure
+- [ ] Rename Project
+- [ ] Assembly Reference to Project Reference
