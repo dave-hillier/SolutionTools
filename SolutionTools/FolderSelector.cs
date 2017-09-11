@@ -36,8 +36,6 @@ namespace SolutionTools
       if (next == slnDir)
         return "";
 
-
-
       while (slnDir != next)
       {
         projectDir = next;

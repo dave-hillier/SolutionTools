@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("SolutionTools2.Tests")]
+[assembly: InternalsVisibleTo("SolutionTools.Tests")]
 
 namespace SolutionTools
 {

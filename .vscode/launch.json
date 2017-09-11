@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceRoot}/SolutionTools2/bin/Debug/netcoreapp2.0/SolutionTools2.dll",
+            "program": "${workspaceRoot}/SolutionTools/bin/Debug/netcoreapp2.0/SolutionTools.dll",
             "args": [],
-            "cwd": "${workspaceRoot}/SolutionTools2",
+            "cwd": "${workspaceRoot}/SolutionTools",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
             "console": "internalConsole",
             "stopAtEntry": false,
