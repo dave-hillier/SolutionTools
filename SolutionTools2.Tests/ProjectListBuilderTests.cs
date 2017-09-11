@@ -1,28 +1,27 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace SolutionTools.Tests
 {
-    [TestFixture]
     public class ProjectListBuilderTests
     {
-        [Test]
+        [Fact]
         public void HasExtension()
         {
             const string csproj = @"c:\project\project.csproj";
             const string fsproj = @"project.fsproj";
             const string vbproj = @"project.vbproj";
 
-            Assert.IsTrue(ProjectListBuilder.HasProjectExtension(csproj));
-            Assert.IsTrue(ProjectListBuilder.HasProjectExtension(fsproj));
-            Assert.IsTrue(ProjectListBuilder.HasProjectExtension(vbproj));
+            Assert.True(ProjectListBuilder.HasProjectExtension(csproj));
+            Assert.True(ProjectListBuilder.HasProjectExtension(fsproj));
+            Assert.True(ProjectListBuilder.HasProjectExtension(vbproj));
         }
 
 
-        [Test]
+        [Fact]
         public void NotExt()
         {
             const string sln = @"c:\project\project.sln";
-            Assert.IsFalse(ProjectListBuilder.HasProjectExtension(sln));
+            Assert.False(ProjectListBuilder.HasProjectExtension(sln));
         }
     }
 }

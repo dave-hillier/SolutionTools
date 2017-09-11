@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 
 namespace SolutionTools.Tests
 {
-    [TestFixture]
     public class SolutionWriterTests
     {
-        [Test]
+        [Fact]
         public void EmptySln() 
         {
             var stringWriter = new StringWriter();
@@ -16,7 +15,7 @@ namespace SolutionTools.Tests
             sw.Write(new string[]{});
 
             var actual = stringWriter.ToString();
-            Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 12.00
+            Assert.Equal(@"Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Global
 	GlobalSection(NestedProjects) = preSolution
@@ -25,7 +24,7 @@ EndGlobal
 ", actual);
         }
 
-        [Test]
+        [Fact]
         public void OneProject()
         {
             var stringWriter = new StringWriter();
@@ -35,13 +34,13 @@ EndGlobal
 
             var actual = stringWriter.ToString().Split(new [] { Environment.NewLine }, StringSplitOptions.None);
 
-            Assert.That(actual[2], Is.StringStarting(@"Project(""{2150E333-8FDC-42A3-9474-1A3956D46DE8}"") = ""Folder"", ""Folder"","));
-            Assert.That(actual[3], Is.EqualTo("EndProject"));
-            Assert.That(actual[4], Is.StringStarting(@"Project(""0"") = ""MyProject"", ""MyProject\MyProject.csproj"","));
-            Assert.That(actual[5], Is.EqualTo("EndProject"));
+            Assert.Contains(actual[2], (@"Project(""{2150E333-8FDC-42A3-9474-1A3956D46DE8}"") = ""Folder"", ""Folder"","));
+            Assert.Equal(actual[3], "EndProject");
+            Assert.Contains(actual[4], (@"Project(""0"") = ""MyProject"", ""MyProject\MyProject.csproj"","));
+            Assert.Equal(actual[5], "EndProject");
         }
 
-        [Test]
+        [Fact]
         public void TestFolder()
         {
             var stringWriter = new StringWriter();
@@ -51,8 +50,8 @@ EndGlobal
 
             var actual = stringWriter.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
-            Assert.That(actual[6], Is.StringStarting(@"Project(""{2150E333-8FDC-42A3-9474-1A3956D46DE8}"") = ""Tests"", ""Tests"","));
-            Assert.That(actual[7], Is.EqualTo("EndProject"));
+            Assert.Contains(actual[6], @"Project(""{2150E333-8FDC-42A3-9474-1A3956D46DE8}"") = ""Tests"", ""Tests"",");
+            Assert.Equal(actual[7], "EndProject");
         }
         
         // TODO: nesting test

@@ -1,37 +1,36 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace SolutionTools.Tests
 {
-    [TestFixture]
     public class FolderSelectorTests
     {
-        [Test]
+        [Fact]
         public void GetSlnFolder()
         {
-            var result = FolderSelector.GetSlnFolder(@"c:\project\project.sln", @"c:\project\folder\a\a.csproj");
-            Assert.AreEqual("folder", result);
+            var result = FolderSelector.GetSlnFolder(@"c:\project\project.sln".ToPlatformPath(), @"c:\project\folder\a\a.csproj".ToPlatformPath());
+            Assert.Equal("folder", result);
         }
 
-        [Test]
+        [Fact]
         public void GetNoSlnFolder()
         {
-            var result = FolderSelector.GetSlnFolder(@"c:\project\project.sln", @"c:\project\a\a.csproj");
-            Assert.AreEqual("", result);
+            var result = FolderSelector.GetSlnFolder(@"c:\project\project.sln".ToPlatformPath(), @"c:\project\a\a.csproj".ToPlatformPath());
+            Assert.Equal("", result);
         }
 
-        [Test]
+        [Fact]
         public void GetSlnFolderByNamespace()
         {
-            var result = FolderSelector.GetSlnFolderByNamespace(@"c:\project\project.sln", @"c:\project\a.b.c.csproj");
-            Assert.AreEqual("a.b", result); // TODO: or just b?
+            var result = FolderSelector.GetSlnFolderByNamespace(@"c:\project\project.sln".ToPlatformPath(), @"c:\project\a.b.c.csproj".ToPlatformPath());
+            Assert.Equal("a.b", result); // TODO: or just b?
         }
 
 
-        [Test]
+        [Fact]
         public void GetSlnFolderByNamespaceIgnoreSubfolder()
         {
-            var result = FolderSelector.GetSlnFolderByNamespace(@"c:\project\project.sln", @"c:\project\c\a.b.c.csproj");
-            Assert.AreEqual("a.b", result); 
+            var result = FolderSelector.GetSlnFolderByNamespace(@"c:\project\project.sln".ToPlatformPath(), @"c:\project\c\a.b.c.csproj".ToPlatformPath());
+            Assert.Equal("a.b", result); 
         }
     }
 }

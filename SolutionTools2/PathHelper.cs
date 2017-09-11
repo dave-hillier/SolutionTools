@@ -3,7 +3,7 @@ using System.IO;
 
 namespace SolutionTools
 {
-    internal class PathHelper
+    internal static class PathHelper
     {
         public static string GetRelativePath(string destPath, string path)
         {
@@ -15,6 +15,11 @@ namespace SolutionTools
         public static bool IsDirectory(string path)
         {
             return (File.GetAttributes(path) & FileAttributes.Directory) != 0;
+        }
+
+        public static string ToPlatformPath(this string path) 
+        {
+            return path.Replace('\\', Path.DirectorySeparatorChar);
         }
     }
 }

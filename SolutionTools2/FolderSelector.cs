@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace SolutionTools
@@ -21,12 +22,21 @@ namespace SolutionTools
 
         public static string GetSlnFolder(string sln, string project)
         {
+            if (sln == null)
+                throw new ArgumentNullException();
+           if (project == null)
+                throw new ArgumentNullException();
+            
             var slnDir = Path.GetDirectoryName(sln);
             var projectDir = Path.GetDirectoryName(project);
             var next = Path.GetDirectoryName(projectDir);
+            if (next == null)
+                throw new Exception();
+
             if (next == slnDir)
                 return "";
-            // TODO: null checks
+
+            
 
             while (slnDir != next)
             {

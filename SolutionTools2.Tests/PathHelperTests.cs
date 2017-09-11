@@ -1,44 +1,43 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace SolutionTools.Tests
 {
-    [TestFixture]
     public class PathHelperTests
     {
-        [Test]
+        [Fact]
         public void FileSameDirectory()
         {
             const string a = @"c:\test\test1.txt";
             const string b = @"c:\test\test2.txt";
-            var c = PathHelper.GetRelativePath(a, b);
-            Assert.AreEqual(c,  "test2.txt");
+            var c = PathHelper.GetRelativePath(a.ToPlatformPath(), b.ToPlatformPath());
+            Assert.Equal(c,  "test2.txt");
         }
 
-        [Test]
+        [Fact]
         public void FileToDirectory()
         {
-            const string a = @"c:\test\";
+            const string a = @"c:\test\"; // TODO - no trailing slash?
             const string b = @"c:\test\test2.txt";
-            var c = PathHelper.GetRelativePath(a, b);
-            Assert.AreEqual(c, "test2.txt");
+            var c = PathHelper.GetRelativePath(a.ToPlatformPath(), b.ToPlatformPath());
+            Assert.Equal(c, "test2.txt");
         }
 
-        [Test]
+        [Fact]
         public void FileToParentDirectory()
         {
             const string a = @"c:\";
             const string b = @"c:\test\test2.txt";
-            var c = PathHelper.GetRelativePath(a, b);
-            Assert.AreEqual(c, @"test\test2.txt");
+            var c = PathHelper.GetRelativePath(a.ToPlatformPath(), b.ToPlatformPath());
+            Assert.Equal(c, @"test\test2.txt".ToPlatformPath());
         }
 
-        [Test]
+        [Fact]
         public void FileToHigherDirectory()
         {
             const string a = @"c:\test1\test2\";
             const string b = @"c:\test\test2.txt";
-            var c = PathHelper.GetRelativePath(a, b);
-            Assert.AreEqual(c, @"..\..\test\test2.txt");
+            var c = PathHelper.GetRelativePath(a.ToPlatformPath(), b.ToPlatformPath());
+            Assert.Equal(c, @"..\..\test\test2.txt".ToPlatformPath());
         }
     }
 }
